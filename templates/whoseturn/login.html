@@ -1,0 +1,37 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Login{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Login</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  {{form.non_field_errors}}
+
+  <p class="form-header">Enter your credentials to log into Whose Turn Is It,
+    or <a href="{% url 'wt-register' %}">register a new account</a>.</p>
+
+  <p class="centered-form-fields">
+    {% render_field form.username placeholder="Username" %}
+    {% render_field form.password placeholder="Password" %}
+  </p>
+
+  {{form.username.errors}}
+  {{form.password.errors}}
+
+  <p class="form-submit">
+    <input type="submit" name="submit" value="Login">
+  </p>
+
+
+</form>
+{% endblock %}

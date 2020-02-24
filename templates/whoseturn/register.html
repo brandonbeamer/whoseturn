@@ -1,0 +1,59 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Register{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Register</div>
+
+<p>Please fill in the following fields to sign-up for Whose Turn Is It.</p>
+
+<form method="post">
+  {% csrf_token %}
+
+  {{form.non_field_errors}}
+
+  <p class="form-header">Your desired username:</p>
+  <p class="form-fields">
+    {% render_field form.username placeholder="Username" %}
+  </p>
+
+  {{form.username.errors}}
+
+  <p class="form-header">Your real name:</p>
+  <p class="form-fields">
+    {% render_field form.first_name placeholder="First Name" %}
+    {% render_field form.last_name placeholder="Last Name" %}
+  </p>
+
+  {{form.first_name.errors}}
+  {{form.last_name.errors}}
+
+  <p class="form-header">Your email address:</p>
+  <p class="form-fields">
+    {% render_field form.email placeholder="email@example.com" %}
+  </p>
+
+  {{form.email.errors}}
+
+  <p class="form-header">A super-secret password:</p>
+  <p class="form-fields">
+    {% render_field form.password1 placeholder="password" %}
+    {% render_field form.password2 placeholder="password again" %}
+  </p>
+
+  {{form.password1.errors}}
+  {{form.password2.errors}}
+
+  <p class="form-submit">
+    <input type="submit" name="submit" value="Register">
+  </p>
+
+</form>
+{% endblock %}

@@ -1,0 +1,23 @@
+@use 'base';
+
+body {
+  background-color: lightgray;
+  color: black;
+}
+
+main {
+  background-color: white;
+  padding: 0.5em;
+  width: 100%;
+  @media screen and (min-width: base.$media-med-width) {
+    width: base.$min-page-width;
+    margin: 2em auto auto auto;
+    box-shadow: 0 0 0.3em 0.3em gray;
+    border-radius: 0.5em;
+  }
+
+  @media screen and (min-width: base.$media-full-width) {
+    width: base.$max-page-width;
+  }
+
+}

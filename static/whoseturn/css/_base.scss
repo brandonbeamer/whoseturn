@@ -1,0 +1,88 @@
+$min-page-width: 500px;
+$max-page-width: 700px;
+$min-page-margin: 10px;
+$media-med-width: $min-page-width + 2 * $min-page-margin;
+$media-full-width: $max-page-width + 2 * $min-page-margin;
+
+@mixin reset-font {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 16px;
+  @media screen and (min-width: $media-full-width) {
+    font-size: 20px;
+  }
+}
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+:root {
+  @include reset-font;
+}
+
+a {
+  color: darkgreen;
+  text-decoration: none;
+}
+
+a:hover {
+  text-shadow: 0 0 0.2em green;
+}
+
+[type=text], [type=password], [type=email] {
+  @include reset-font;
+  background-color: white;
+  padding: 0.4em;
+  border-radius: 0.4em;
+  border: 1px solid gray;
+}
+
+[type=submit] {
+  @include reset-font;
+  border-radius: 0.4em;
+  padding: 0.4em;
+  border: none;
+  background-color: darkgreen;
+  color: white;
+}
+
+.form-header {
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 0.3em;
+}
+
+.form-fields {
+  margin-left: 2em;
+}
+
+.centered-form-fields {
+  text-align: center;
+}
+
+.form-submit {
+  text-align: right;
+  margin-top: 1em;
+}
+
+.title {
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  color: black;
+}
+
+.subtitle {
+  text-align: center;
+  color: darkgray;
+  margin-bottom: 2em;
+}
+
+.errorlist {
+  color: darkred;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
