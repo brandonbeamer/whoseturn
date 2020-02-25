@@ -1,4 +1,5 @@
 import uuid
+import pytz
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -10,7 +11,7 @@ class Task(models.Model):
     members = models.ManyToManyField(User)
 
     def __str__(self):
-        return f"Task: {self.name}"
+        return self.name
 
     def get_absolute_url(self):
         return reverse('wt-logentries', kwargs={'uuid': self.id})
@@ -27,4 +28,10 @@ class LogEntry(models.Model):
 
 class UserSettings(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    timezone = models.CharField(max_length=50, default='UTC')
+    timezone = models.CharField(max_length=50, default='UTC', choices=[
+        (_, _) for _ in pytz.common_timezones
+    ])
+
+class Invite(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    token = models.CharField(max_length=22) # 16 bytes of randomness base64-encoded

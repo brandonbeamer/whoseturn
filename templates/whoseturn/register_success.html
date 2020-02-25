@@ -1,0 +1,22 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Successfully Registered{% endblock %}
+
+{% block main %}
+<div class="title">Welcome!</div>
+<div class="subtitle"></div>
+
+<p>You've successfully registered. Head on over to the
+  <a href="{% url 'wt-login' %}">login page</a> to start using Whose Turn Is It.</p>
+
+<script>
+  setTimeout(() => {window.location.replace("{{redirect_url}}")}, 3000)
+</script>
+
+
+{% endblock %}

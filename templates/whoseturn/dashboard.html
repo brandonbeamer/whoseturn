@@ -3,12 +3,34 @@
 {% load widget_tweaks %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+<link rel="stylesheet" href="{% static 'whoseturn/css/dashboard.css' %}">
 {% endblock %}
 
 {% block title %}Whose Turn Is It : Dashboard{% endblock %}
 
 {% block main %}
-<i class="material-icons">settings</i>
-The DASHBOARD
+<div class="title">Whose Turn Is It?</div>
+
+<div class="toolbar">
+<a class="material-icons" href="#" title="manage groups">group</a>
+<a class="material-icons" href="{% url 'wt-newtask' %}" title="add group">group_add</a>
+<a class="material-icons" href="#" title="settings">settings</a>
+<a class="material-icons" href="{% url 'wt-logout' %}" title="logout">power_settings_new</a>
+</div>
+
+{% if task_list %}
+  <ul>
+  {% for task in task_list %}
+    <li>{{task}}</li>
+  {% endfor %}
+  </ul>
+
+  <div class="check-task">
+    <i class="material-icons">check_circle_outline</i>
+    <a href="#">I did a thing!</a>
+  </div>
+{% else %}
+  You're not sharing any tasks yet. Why not <a href="{% url 'wt-newtask' %}"><i class="material-icons">group_add</i> make a shared group task</a>?
+{% endif %}
+
 {% endblock %}

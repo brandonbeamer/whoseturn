@@ -1,0 +1,41 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : New Task{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Create a New Shared Group Task</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  {{user_form.non_field_errors}}
+
+  <p class="form-header">The shared task of this group will be to &hellip;</p>
+  <p class="form-fields">
+    {% render_field form.name %}
+  </p>
+
+  {{form.name.errors}}
+
+  <p class="form-header">Invite others to this task by entering their email addresses, separated by commas,
+    below.</p>
+
+  <p class="form-fields">
+    {% render_field form.invite_emails placeholder='lizzy@google.com, grandpa@hotmail.com, ...' style='width:100%' %}
+  </p>
+
+  {{form.invite_emails.errors}}
+
+  <p class="form-submit">
+    <input type="submit" name="submit" value="Go!">
+  </p>
+
+</form>
+{% endblock %}

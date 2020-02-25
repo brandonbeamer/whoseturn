@@ -1,0 +1,20 @@
+{% if use_html %}
+
+<p><strong>{{user.first_name}}</strong> has invited you to
+  <strong>{{task.name}}</strong> together on <strong>WhoseTurnIsIt</strong>.
+  To join the {{task.name}} group, visit the following URL:</p>
+
+<p><a href="{{invite_url}}">{{invite_url}}</a></p>
+
+<p>Cheers!</p>
+
+{% else %}
+
+{{user.first_name}} has invited you to {{task.name}} together on WhoseTurnIsIt.
+To join the {{task.name}} group, visit the following URL:
+
+{{invite_url}}
+
+Cheers!
+
+{% endif %}

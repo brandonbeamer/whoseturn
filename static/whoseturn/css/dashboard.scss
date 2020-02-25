@@ -1,0 +1,14 @@
+@use 'generic';
+@use 'toolbar';
+
+.check-task {
+  font-size: 1.5em;
+  text-align: center;
+  a, .material-icons {
+    font-weight: bold;
+    color: green;
+  }
+  a:hover {
+    text-shadow: 0 0 0.2em lightgreen;
+  }
+}

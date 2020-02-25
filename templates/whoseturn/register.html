@@ -17,39 +17,46 @@
 <form method="post">
   {% csrf_token %}
 
-  {{form.non_field_errors}}
+  {{user_form.non_field_errors}}
 
   <p class="form-header">Your desired username:</p>
   <p class="form-fields">
-    {% render_field form.username placeholder="Username" %}
+    {% render_field user_form.username placeholder="Username" %}
   </p>
 
-  {{form.username.errors}}
+  {{user_form.username.errors}}
 
   <p class="form-header">Your real name:</p>
   <p class="form-fields">
-    {% render_field form.first_name placeholder="First Name" %}
-    {% render_field form.last_name placeholder="Last Name" %}
+    {% render_field user_form.first_name placeholder="First Name" %}
+    {% render_field user_form.last_name placeholder="Last Name" %}
   </p>
 
-  {{form.first_name.errors}}
-  {{form.last_name.errors}}
+  {{user_form.first_name.errors}}
+  {{user_form.last_name.errors}}
 
   <p class="form-header">Your email address:</p>
   <p class="form-fields">
-    {% render_field form.email placeholder="email@example.com" %}
+    {% render_field user_form.email placeholder="email@example.com" %}
   </p>
 
-  {{form.email.errors}}
+  {{user_form.email.errors}}
+
+  <p class="form-header">Your timezone:</p>
+  <p class="form-fields">
+    {% render_field settings_form.timezone %}
+  </p>
+
+  {{settings_form.timezone.errors}}
 
   <p class="form-header">A super-secret password:</p>
   <p class="form-fields">
-    {% render_field form.password1 placeholder="password" %}
-    {% render_field form.password2 placeholder="password again" %}
+    {% render_field user_form.password1 placeholder="password" %}
+    {% render_field user_form.password2 placeholder="password again" %}
   </p>
 
-  {{form.password1.errors}}
-  {{form.password2.errors}}
+  {{user_form.password1.errors}}
+  {{user_form.password2.errors}}
 
   <p class="form-submit">
     <input type="submit" name="submit" value="Register">

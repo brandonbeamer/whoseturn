@@ -1,0 +1,23 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : New Task Created{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle"></div>
+
+<p>You've just created a <strong>{{task.name}}</strong> group! You'll be sent
+  back to <a href="{% url 'wt-dashboard' %}">your dashboard</a> in just a
+  moment.</p>
+
+<script>
+  setTimeout(() => {window.location.replace("{{redirect_url}}")}, 3000)
+</script>
+
+{% endblock %}
