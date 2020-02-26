@@ -1,0 +1,40 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : New Entry{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Create a New Log Entry</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  {{user_form.non_field_errors}}
+
+  <p class="form-header centered">What did you do?</p>
+  <p class="form-fields centered">
+    {% render_field form.task %}
+  </p>
+
+  {{form.task.errors}}
+
+  <p class="form-header centered">Leave a comment?</p>
+
+  <p class="form-fields centered">
+    {% render_field form.comment style="width:100%" %}
+  </p>
+
+  {{form.comment.errors}}
+
+  <p class="form-submit centered">
+    <input type="submit" name="submit" value="Go!">
+  </p>
+
+</form>
+{% endblock %}

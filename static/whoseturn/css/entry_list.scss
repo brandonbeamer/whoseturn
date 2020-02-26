@@ -1,0 +1,34 @@
+@use 'base';
+@use 'generic';
+@use 'toolbar';
+
+ul.member-list {
+  list-style: none;
+  margin: 0;
+  padding: 1em;
+  li {
+    padding: 0.3em;
+  }
+}
+
+ul.entry-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  li {
+    width: 100%;
+    margin: 0;
+    padding: 1em;
+    .whowhen {
+
+    }
+    .comment {
+      color: darkgray;
+    }
+  }
+
+  li:nth-child(2n) {
+    background: base.$row_even_color;
+  }
+}

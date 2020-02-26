@@ -1,11 +1,11 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from django.forms import ModelForm, ValidationError
+from django.forms import ModelForm, ValidationError, Form, PasswordInput
 from django.forms.fields import CharField
 from django.core.validators import validate_email
-from django import forms
+from django.contrib.auth.password_validation import validate_password
 from .constants import APP_GROUP_NAME
-from .models import UserSettings, Task
+from .models import UserSettings, Task, LogEntry
 
 
 class EmailListField(CharField):
@@ -27,9 +27,16 @@ class UserSettingsForm(ModelForm):
         fields = ['timezone']
 
 class FullUserCreationForm(UserCreationForm):
+    # TODO: Make name mandatory
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'username']
+
+class UserDetailsForm(ModelForm):
+    # TODO: Make name mandatory
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
 
 class CustomAuthenticationForm(AuthenticationForm):
     def confirm_login_allowed(self, user):
@@ -42,7 +49,42 @@ class CustomAuthenticationForm(AuthenticationForm):
             )
 
 class TaskForm(ModelForm):
-    invite_emails = EmailListField(max_length=300)
+    invite_emails = EmailListField(max_length=300, required=False)
     class Meta:
         model = Task
         fields = ['name']
+
+class TaskInviteForm(Form):
+    invite_emails = EmailListField(max_length=300, required=True)
+
+
+class LogEntryForm(ModelForm):
+    def __init__(self, user, postdata=None):
+        super().__init__(postdata)
+        if self.instance:
+            self.fields['task'].queryset = user.task_set
+
+    class Meta:
+        model = LogEntry
+        fields = ['task', 'comment']
+
+class PasswordResetForm(Form):
+    def __init__(self, user, postdata=None):
+        super().__init__(postdata)
+        self.user = user
+
+    password1 = CharField(widget=PasswordInput)
+    password2 = CharField(widget=PasswordInput)
+
+    def clean_password1(self):
+        data = self.cleaned_data['recipients']
+        validate_password(data, self.user)
+        return data
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pw1 = self.cleaned_data.get('password1')
+        pw2 = self.cleaned_data.get('password2')
+        if pw1 != pw2:
+            raise ValidationError("Password do not match", 'password_mismatch')
+        return

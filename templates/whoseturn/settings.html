@@ -1,0 +1,69 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/settings.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Settings{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Settings</div>
+
+<div class="toolbar">
+  <a href="{% url 'wt-dashboard' %}" class="material-icons" title="back to dashboard">dashboard</a>
+</div>
+
+
+{% if updated_info %}
+<p class="updated-info">Updated {{updated_info}}.</p>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="form_name" value="settings">
+
+  {{settings_form.non_field_errors}}
+  <p class="form-section">Timezone:</p>
+  <p class="form-fields centered">
+    {% render_field settings_form.timezone %}
+  </p>
+  {{settings_form.timezone.errors}}
+
+  <p class="form-submit">
+    <input type="submit" name="submit" value="Update">
+  </p>
+</form>
+
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="form_name" value="details">
+
+  {{settings_form.non_field_errors}}
+  <p class="form-section">Personal Details:</p>
+  <p class="form-header">Name:</p>
+  <p class="form-fields">
+    {% render_field details_form.first_name placeholder="First name" %}
+    {% render_field details_form.last_name placeholder="Last name" %}
+  </p>
+  <p class="form-header">Email:</p>
+  <p class="form-fields centered">
+    {% render_field details_form.email placeholder="email@example.com" style="width:100%" %}
+  </p>
+
+  {{details_form.first_name.errors}}
+  {{details_form.last_name.errors}}
+  {{details_form.email.errors}}
+
+  <p class="form-submit">
+    <input type="submit" name="submit" value="Update">
+  </p>
+</form>
+
+<!-- <form method="post">
+
+</form> -->
+
+{% endblock %}

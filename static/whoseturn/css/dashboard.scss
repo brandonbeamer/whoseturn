@@ -2,13 +2,26 @@
 @use 'toolbar';
 
 .check-task {
-  font-size: 1.5em;
+  font-size: 3em;
   text-align: center;
-  a, .material-icons {
+  a {
     font-weight: bold;
     color: green;
   }
   a:hover {
     text-shadow: 0 0 0.2em lightgreen;
+  }
+}
+
+ul.turn-list {
+  list-style: none;
+  padding: 0;
+
+  li {
+    margin-top: 2em;
+    .turn-name {
+      font-weight: bold;
+      font-size: 1.5em;
+    }
   }
 }

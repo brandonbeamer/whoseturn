@@ -1,3 +1,5 @@
+@use 'base';
+
 .toolbar {
   display: flex;
   justify-content: center;
@@ -12,6 +14,6 @@
   }
 
   a:hover {
-    text-shadow: 0 0 0.2em pink;
+    @include base.red-glow;
   }
 }

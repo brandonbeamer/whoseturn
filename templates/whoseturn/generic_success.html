@@ -1,0 +1,29 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic_success.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Success!{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Success!</div>
+
+<div class="generic-success">
+  <i class="material-icons">check_circle_outline</i>
+</div>
+
+{% if message %}
+<div class="message">
+  {{message}}
+</div>
+{% endif %}
+
+<script>
+  setTimeout(() => {window.location.replace("{{redirect_url}}")}, 1000)
+</script>
+
+{% endblock %}

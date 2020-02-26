@@ -161,28 +161,31 @@ main {
   text-shadow: 0 0 0.2em pink;
 }
 
-.check-task {
-  font-size: 3em;
-  text-align: center;
-}
-.check-task a {
-  font-weight: bold;
-  color: green;
-}
-.check-task a:hover {
-  text-shadow: 0 0 0.2em lightgreen;
-}
-
-ul.turn-list {
+ul.member-list {
   list-style: none;
-  padding: 0;
+  margin: 0;
+  padding: 1em;
 }
-ul.turn-list li {
-  margin-top: 2em;
-}
-ul.turn-list li .turn-name {
-  font-weight: bold;
-  font-size: 1.5em;
+ul.member-list li {
+  padding: 0.3em;
 }
 
-/*# sourceMappingURL=dashboard.css.map */
+ul.entry-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+ul.entry-list li {
+  width: 100%;
+  margin: 0;
+  padding: 1em;
+}
+ul.entry-list li .comment {
+  color: darkgray;
+}
+ul.entry-list li:nth-child(2n) {
+  background: #fbfbfb;
+}
+
+/*# sourceMappingURL=entry_list.css.map */

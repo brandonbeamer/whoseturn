@@ -145,44 +145,10 @@ main {
   }
 }
 
-.toolbar {
-  display: flex;
-  justify-content: center;
-  margin-top: 0.5em;
-  margin-bottom: 2em;
-}
-.toolbar a {
-  font-size: 2em;
-  color: red;
-  margin-left: 0.5em;
-  margin-right: 0.5em;
-}
-.toolbar a:hover {
-  text-shadow: 0 0 0.2em pink;
-}
-
-.check-task {
-  font-size: 3em;
-  text-align: center;
-}
-.check-task a {
-  font-weight: bold;
+.message {
   color: green;
-}
-.check-task a:hover {
-  text-shadow: 0 0 0.2em lightgreen;
-}
-
-ul.turn-list {
-  list-style: none;
-  padding: 0;
-}
-ul.turn-list li {
-  margin-top: 2em;
-}
-ul.turn-list li .turn-name {
+  text-align: center;
   font-weight: bold;
-  font-size: 1.5em;
 }
 
-/*# sourceMappingURL=dashboard.css.map */
+/*# sourceMappingURL=generic_success.css.map */

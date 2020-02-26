@@ -161,28 +161,31 @@ main {
   text-shadow: 0 0 0.2em pink;
 }
 
-.check-task {
-  font-size: 3em;
-  text-align: center;
-}
-.check-task a {
-  font-weight: bold;
-  color: green;
-}
-.check-task a:hover {
-  text-shadow: 0 0 0.2em lightgreen;
-}
-
-ul.turn-list {
+ul.task-list {
   list-style: none;
   padding: 0;
 }
-ul.turn-list li {
-  margin-top: 2em;
-}
-ul.turn-list li .turn-name {
-  font-weight: bold;
+ul.task-list li {
+  display: flex;
+  justify-content: space-between;
   font-size: 1.5em;
+  padding: 0.5em;
+}
+ul.task-list li .task-name {
+  margin-right: auto;
+}
+ul.task-list li .invite {
+  margin: 0 0.5em 0 0.5em;
+}
+ul.task-list li .remove a {
+  margin-left: 0.5em;
+  color: red;
+}
+ul.task-list li .remove a:hover {
+  text-shadow: 0 0 0.2em pink;
+}
+ul.task-list li:nth-child(2n) {
+  background-color: #fbfbfb;
 }
 
-/*# sourceMappingURL=dashboard.css.map */
+/*# sourceMappingURL=task_list.css.map */

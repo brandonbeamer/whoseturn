@@ -1,0 +1,27 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Confirm Removing Task{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Confirm Remove Task</div>
+
+<p class="centered">Are you sure you want to leave the {{task}} group?</p>
+
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="confirm" value="confirm">
+  <div class="form-fields centered" style="margin-top: 2em;">
+    <input type="submit" name="submit" value="Yes">
+    <input type="button" name="cancel" value="No" class="cancelbutton"
+      onclick="window.location.href='{% url 'wt-tasklist' %}'">
+  </div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,15 @@
+@use 'base';
+@use 'generic';
+@use 'toolbar';
+
+
+.form-section {
+  border-bottom: 1px solid gray;
+  font-weight: bold;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.updated-info {
+  color: green;
+}

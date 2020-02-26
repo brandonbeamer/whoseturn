@@ -10,27 +10,40 @@
 
 {% block main %}
 <div class="title">Whose Turn Is It?</div>
+<div class="subtitle">{{user.first_name}}'s Dashboard</div>
 
 <div class="toolbar">
-<a class="material-icons" href="#" title="manage groups">group</a>
+  {% if turn_list %}
+    <a class="material-icons" href="{% url 'wt-tasklist' %}" title="manage groups">group</a>
+  {% endif %}
 <a class="material-icons" href="{% url 'wt-newtask' %}" title="add group">group_add</a>
-<a class="material-icons" href="#" title="settings">settings</a>
+<a class="material-icons" href="{% url 'wt-settings' %}" title="settings">settings</a>
 <a class="material-icons" href="{% url 'wt-logout' %}" title="logout">power_settings_new</a>
 </div>
 
-{% if task_list %}
-  <ul>
-  {% for task in task_list %}
-    <li>{{task}}</li>
+{% if turn_list %}
+  <ul class="turn-list">
+  {% for turn in turn_list %}
+    <li>
+      <div class="task-name centered">
+        &hellip; to <a class="turn-task" href="{% url 'wt-logentrylist' task_id=turn.task.id %}">{{turn.task}}</a>:
+      </div>
+      <div class="turn-name centered">
+        {{turn.user.get_full_name}}
+      </div>
+    </li>
   {% endfor %}
   </ul>
 
   <div class="check-task">
-    <i class="material-icons">check_circle_outline</i>
-    <a href="#">I did a thing!</a>
+    <a href="{% url 'wt-newentry' %}">
+      <i class="material-icons">add_circle_outline</i>
+    </a>
   </div>
 {% else %}
-  You're not sharing any tasks yet. Why not <a href="{% url 'wt-newtask' %}"><i class="material-icons">group_add</i> make a shared group task</a>?
+  <p>You're not a member of any group task yet. Why not 
+    <a href="{% url 'wt-newtask' %}"><i class="material-icons">group_add</i>&nbsp;make a shared group task</a>?</p>
+
 {% endif %}
 
 {% endblock %}

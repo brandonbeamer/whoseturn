@@ -6,11 +6,11 @@
 <link rel="stylesheet" href="{% static 'whoseturn/css/task_new.css' %}">
 {% endblock %}
 
-{% block title %}Whose Turn Is It : New Task{% endblock %}
+{% block title %}Whose Turn Is It : Invite Others {% endblock %}
 
 {% block main %}
 <div class="title">Whose Turn Is It?</div>
-<div class="subtitle">Create a New Shared Group Task</div>
+<div class="subtitle">Invite New Members</div>
 
 <div class="toolbar">
   <a href="{% url 'wt-dashboard' %}" class="material-icons" title="back to dashboard">dashboard</a>
@@ -19,17 +19,10 @@
 <form method="post">
   {% csrf_token %}
 
-  {{user_form.non_field_errors}}
-
-  <p class="form-header">The shared task of this group will be to &hellip;</p>
-  <p class="form-fields centered">
-    {% render_field form.name placeholder="clean the common space" style="width: 100%" %}
-  </p>
-
-  {{form.name.errors}}
+  {{form.non_field_errors}}
 
   <p class="form-header">Invite others to this task by entering their email addresses, separated by commas,
-    below.</p>
+    below. New members start on equal footing with the current group leader.</p>
 
   <p class="form-fields">
     {% render_field form.invite_emails placeholder='lizzy@google.com, grandpa@hotmail.com, ...' style='width:100%' %}
@@ -38,7 +31,7 @@
   {{form.invite_emails.errors}}
 
   <p class="form-submit">
-    <input type="submit" name="submit" value="Create Task">
+    <input type="submit" name="submit" value="Send Invites">
   </p>
 
 </form>

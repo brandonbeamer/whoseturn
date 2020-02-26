@@ -3,6 +3,19 @@ $max-page-width: 700px;
 $min-page-margin: 10px;
 $media-med-width: $min-page-width + 2 * $min-page-margin;
 $media-full-width: $max-page-width + 2 * $min-page-margin;
+$row_even_color: #fbfbfb;
+
+@mixin blue-glow {
+  text-shadow: 0 0 0.2em lightblue;
+}
+
+@mixin red-glow {
+  text-shadow: 0 0 0.2em pink;
+}
+
+@mixin green-glow {
+  text-shadow: 0 0 0.2em lightgreen;
+}
 
 @mixin reset-font {
   font-family: 'Quicksand', sans-serif;
@@ -22,6 +35,14 @@ $media-full-width: $max-page-width + 2 * $min-page-margin;
   @include reset-font;
 }
 
+html {
+  background-color: white;
+}
+
+body {
+  color: black;
+}
+
 a {
   color: blue;
   font-weight: bold;
@@ -29,7 +50,7 @@ a {
 }
 
 a:hover {
-  text-shadow: 0 0 0.2em lightblue;
+  @include blue-glow;
 }
 
 [type=text], [type=password], [type=email], select {
@@ -43,9 +64,18 @@ a:hover {
 [type=submit] {
   @include reset-font;
   border-radius: 0.4em;
-  padding: 0.4em;
+  padding: 0.4em 1em 0.4em 1em;
   border: none;
   background-color: darkgreen;
+  color: white;
+}
+
+.cancelbutton {
+  @include reset-font;
+  border-radius: 0.4em;
+  padding: 0.4em 1em 0.4em 1em;
+  border: none;
+  background-color: darkred;
   color: white;
 }
 
@@ -58,15 +88,22 @@ a:hover {
 
 .form-fields {
   margin-left: 2em;
+  margin-right: 2em;
 }
 
-.centered-form-fields {
+.centered {
   text-align: center;
 }
 
 .form-submit {
   text-align: right;
   margin-top: 1em;
+}
+
+.generic-success {
+  font-size: 4em;
+  color: green;
+  text-align: center;
 }
 
 .title {

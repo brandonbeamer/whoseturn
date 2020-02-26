@@ -13,6 +13,14 @@
   }
 }
 
+html {
+  background-color: white;
+}
+
+body {
+  color: black;
+}
+
 a {
   color: blue;
   font-weight: bold;
@@ -41,13 +49,28 @@ a:hover {
   font-family: "Quicksand", sans-serif;
   font-size: 16px;
   border-radius: 0.4em;
-  padding: 0.4em;
+  padding: 0.4em 1em 0.4em 1em;
   border: none;
   background-color: darkgreen;
   color: white;
 }
 @media screen and (min-width: 720px) {
   [type=submit] {
+    font-size: 20px;
+  }
+}
+
+.cancelbutton {
+  font-family: "Quicksand", sans-serif;
+  font-size: 16px;
+  border-radius: 0.4em;
+  padding: 0.4em 1em 0.4em 1em;
+  border: none;
+  background-color: darkred;
+  color: white;
+}
+@media screen and (min-width: 720px) {
+  .cancelbutton {
     font-size: 20px;
   }
 }
@@ -61,15 +84,22 @@ a:hover {
 
 .form-fields {
   margin-left: 2em;
+  margin-right: 2em;
 }
 
-.centered-form-fields {
+.centered {
   text-align: center;
 }
 
 .form-submit {
   text-align: right;
   margin-top: 1em;
+}
+
+.generic-success {
+  font-size: 4em;
+  color: green;
+  text-align: center;
 }
 
 .title {
@@ -94,11 +124,6 @@ a:hover {
 .material-icons {
   vertical-align: bottom;
   font-size: 1em;
-}
-
-body {
-  background-color: lightgray;
-  color: black;
 }
 
 main {

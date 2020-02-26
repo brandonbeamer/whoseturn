@@ -8,14 +8,22 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http.response import HttpResponseRedirect
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.utils import timezone
+
 from secrets import token_urlsafe
+from collections import Counter
+import pytz
+from datetime import datetime
 
 # from django.contrib.auth.forms import AuthenticationForm
 # from django.contrib.auth.forms import UserCreationForm
 from .forms import (
-    FullUserCreationForm, UserSettingsForm, CustomAuthenticationForm,
-    TaskForm)
-from .models import UserSettings, Task, Invite
+    FullUserCreationForm, UserSettingsForm, UserDetailsForm,
+    CustomAuthenticationForm, TaskForm, TaskInviteForm, LogEntryForm,
+    PasswordResetForm)
+from .models import (
+    UserSettings, Task, Invite, LogEntry, Membership,
+    PasswordReset)
 from .constants import APP_GROUP_NAME, INVITE_TOKEN_KEY
 # Create your views here.
 
@@ -62,6 +70,22 @@ def send_invites(user, task, recipients):
         message.attach_alternative(html_message, 'text/html')
         message.send()
 
+def get_member_turns(task):
+    """
+    Returns a dictionary {username: turn_count} for each user in task.members
+    """
+    entries = LogEntry.objects.filter(task=task)
+    turns = {}
+
+    for user in task.members.all():
+        turns[user.username] = Membership.objects.get(user=user, task=task).gifted_turns
+
+    for entry in entries:
+        turns[entry.user.username] += 1
+
+    return turns
+
+# TODO: Add send_password_reset function
 
 class LoginView(View):
     template_name = 'whoseturn/login.html'
@@ -94,7 +118,7 @@ class LogoutView(View):
 
 class RegisterView(TemplateView):
     template_name = 'whoseturn/register.html'
-    success_template = 'whoseturn/register_success.html'
+    success_template = 'whoseturn/generic_success.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -110,7 +134,9 @@ class RegisterView(TemplateView):
         if user_form.is_valid() and settings_form.is_valid():
             self.forms_valid(user_form, settings_form)
             return render(request, self.success_template,
-                {'redirect_url': reverse('wt-dashboard')})
+                {'redirect_url': reverse('wt-dashboard'),
+                 'message': 'Welcome to Whose Turn Is It!',
+                })
         else:
             context = super().get_context_data(**kwargs)
             context.update({
@@ -135,6 +161,8 @@ class RegisterView(TemplateView):
         settings = settings_form.save(commit=False)
         settings.user = user
         settings.save()
+
+        login(self.request, user)
         return
 
 class DashboardView(View):
@@ -151,7 +179,12 @@ class DashboardView(View):
                 # add user to task and delete invite
                 invite = Invite.objects.get(token=invite_token)
                 task = invite.task
+                turns = get_member_turns(task)
+                max_turns = max(turns.values())
                 task.members.add(request.user)
+                membership = Membership.objects.get(task=task, user=request.user)
+                membership.gifted_turns = max_turns
+                membership.save()
                 invite.delete()
                 del request.session[INVITE_TOKEN_KEY]
 
@@ -165,20 +198,40 @@ class DashboardView(View):
         task_list = self.request.user.task_set.all()
 
         context = {
-            'task_list': task_list
+            # task: user
+            'turn_list': [
+                {
+                    'task': task,
+                    'user': task.members.get(username=self.get_next_turn(task)),
+                }
+                for task in task_list
+            ]
         }
         return context
+
+    def get_next_turn(self, task):
+        turns = get_member_turns(task)
+
+        least_frequent_user = None
+        least_frequent_turns = 0
+        for username in turns:
+            if (least_frequent_user is None
+                or turns[username] < least_frequent_turns):
+
+                least_frequent_turns = turns[username]
+                least_frequent_user = username
+
+        return least_frequent_user
 
 class NewTaskView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test
     template_name = 'whoseturn/task_new.html'
-    success_template = 'whoseturn/task_new_success.html'
+    success_template = 'whoseturn/generic_success.html'
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
+        context = {
             'form': TaskForm()
-        })
+        }
         return context;
 
     def post(self, request, **kwargs):
@@ -186,24 +239,88 @@ class NewTaskView(UserPassesTestMixin, TemplateView):
         if form.is_valid():
             self.form_valid(form) # write to self.new_object
             return render(self.request, self.success_template,
-                {'task': self.new_object, 'redirect_url': reverse('wt-dashboard')})
+                {'redirect_url': reverse('wt-dashboard'),
+                 'message': 'New task group created!'})
         else:
-            context = super().get_context_data(**kwargs)
-            context.update({
+            context = {
                 'form': form
-            })
+            }
             return render(self.request, self.template_name, context)
 
 
     def form_valid(self, form):
         task = form.save()
         task.members.add(self.request.user)
+        task.creator = self.request.user
         task.save()
         invites = form.cleaned_data['invite_emails']
         send_invites(self.request.user, task, invites)
         self.new_object = task
 
-class InviteView(View):
+class TaskListView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/task_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = {
+            'task_list': self.request.user.task_set.all()
+        }
+        return context
+
+class TaskInviteView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/task_invite.html'
+    success_template = 'whoseturn/generic_success.html'
+
+    def get_context_data(self, **kwargs):
+        task = get_object_or_404(Task, id=kwargs['task_id'])
+        context = {
+            'form': TaskInviteForm(),
+        }
+        return context
+
+    def post(self, request, **kwargs):
+        task = get_object_or_404(Task, id=kwargs['task_id'])
+        form = TaskInviteForm(request.POST)
+        if form.is_valid():
+            emails = form.cleaned_data['invite_emails']
+            send_invites(request.user, task, emails)
+            context = {
+                'redirect_url': reverse('wt-tasklist'),
+                'message': 'Invites sent!',
+            }
+            return render(request, self.success_template, context)
+        else:
+            return render(request, self.template_name, {'form': form})
+
+class TaskDeleteView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/task_delete.html'
+    success_template = 'whoseturn/generic_success.html'
+
+    def get_context_data(self, **kwargs):
+        task = get_object_or_404(Task, id=kwargs['task_id'])
+        context = {
+            'task': task,
+        }
+        return context
+
+    def post(self, request, **kwargs):
+        task = get_object_or_404(Task, id=kwargs['task_id'])
+        confirm = request.POST.get('confirm')
+        if confirm == 'confirm':
+            task.members.remove(self.request.user)
+            if not task.members.exists():
+                task.delete()
+            context = {
+                'redirect_url': reverse('wt-tasklist'),
+                'message': "You've been removed from this task."
+            }
+            return render(request, self.success_template, context)
+        else:
+            return HttpResponseRedirect(reverse('wt-tasklist'))
+
+class AcceptInviteView(View):
     def get(self, request, **kwargs):
         invite = get_object_or_404(Invite, token=kwargs['token'])
 
@@ -211,8 +328,108 @@ class InviteView(View):
         request.session[INVITE_TOKEN_KEY] = kwargs['token']
         return HttpResponseRedirect(reverse('wt-dashboard'))
 
-class LogEntriesView(UserPassesTestMixin, TemplateView):
-    def test_func(self):
-        pass
-        # TODO: IMPLEMENET
-    pass
+class NewEntryView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/entry_new.html'
+    success_template = 'whoseturn/generic_success.html'
+
+    def get_context_data(self, **kwargs):
+        form = LogEntryForm(self.request.user)
+        context = {'form': form}
+        return context
+
+    def post(self, request, **kwargs):
+        form = LogEntryForm(request.user, request.POST)
+        if form.is_valid():
+            self.form_valid(form)
+            return render(request, self.success_template,
+                {'redirect_url': reverse('wt-dashboard'),
+                 'message': "Your contribution has been noted!"})
+        else:
+            return render(request, self.template_name, {'form': form})
+
+    def form_valid(self, form):
+        entry = form.save(commit=False)
+        entry.user = self.request.user
+        entry.save()
+        return
+
+class EntryListView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/entry_list.html'
+
+    def dispatch(self, request, **kwargs):
+        tzname = request.user.settings.timezone
+        if tzname:
+            timezone.activate(pytz.timezone(tzname))
+        return super().dispatch(request, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        task = get_object_or_404(Task, id=kwargs['task_id'])
+        turns = get_member_turns(task)
+
+        context = {
+            'task': task,
+            'member_count': len(turns),
+            'member_list': sorted([
+                {'user': task.members.get(username=_),
+                 'turn_count': turns[_]}
+                for _ in turns
+            ], key=lambda x:x['turn_count']),
+            'entries': task.entries.all(),
+        }
+        return context
+
+class SettingsView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/settings.html'
+    success_template = 'whoseturn/generic_success.html'
+
+    def get_context_data(self, **kwargs):
+        context = {
+            'settings_form': UserSettingsForm(instance=self.request.user.settings),
+            'details_form': UserDetailsForm(instance=self.request.user),
+            # TODO: Add password reset stuff
+        }
+        return context
+
+    def post(self, request, **kwargs):
+        form_name = request.POST.get('form_name')
+        context = self.get_context_data(**kwargs)
+
+        if form_name == 'settings':
+            form = UserSettingsForm(
+                instance=request.user.settings,
+                data=request.POST
+            )
+            if form.is_valid():
+                form.save()
+                context['updated_info'] = 'timezone information'
+
+            context['settings_form'] = form
+
+        elif form_name == 'details':
+            form = UserDetailsForm(
+                instance=request.user,
+                data=request.POST
+            )
+            if form.is_valid():
+                form.save()
+                context['updated_info'] = 'personal details'
+
+            context['details_form'] = form
+
+        return render(request, self.template_name, context)
+
+class PasswordResetView(TemplateView):
+    template_name = 'whoseturn/password_reset.html'
+    success_template = 'whoseturn/generic_success.html'
+
+    def get_context_data(self, **kwargs):
+        token = kwargs['token']
+        reset = get_object_or_404(PasswordReset, token=token)
+        form = PasswordResetForm(reset.user)
+        context = {
+            'form': form,
+        }
+        return context

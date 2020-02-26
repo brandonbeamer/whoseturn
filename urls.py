@@ -2,7 +2,11 @@ from django.urls import path, reverse_lazy
 from django.views.generic import RedirectView
 from .views import (
     RegisterView, LoginView, LogoutView,
-    DashboardView, NewTaskView, InviteView, LogEntriesView)
+    DashboardView,
+    NewTaskView, TaskListView, TaskDeleteView, TaskInviteView,
+    AcceptInviteView,
+    NewEntryView, EntryListView,
+    SettingsView, PasswordResetView)
 
 
 urlpatterns = [
@@ -12,7 +16,13 @@ urlpatterns = [
     path('register', RegisterView.as_view(), name='wt-register'),
     path('dashboard', DashboardView.as_view(), name='wt-dashboard'),
     path('newtask', NewTaskView.as_view(), name='wt-newtask'),
-    path('invite/<str:token>', InviteView.as_view(), name='wt-invite'),
-    path('log/<uuid:id>', LogEntriesView.as_view(), name='wt-logentries'),
+    path('acceptinvite/<str:token>', AcceptInviteView.as_view(), name='wt-invite'),
+    path('managetasks', TaskListView.as_view(), name='wt-tasklist'),
+    path('invite/<uuid:task_id>', TaskInviteView.as_view(), name='wt-taskinvite'),
+    path('removetask/<uuid:task_id>', TaskDeleteView.as_view(), name='wt-taskdelete'),
+    path('newentry', NewEntryView.as_view(), name='wt-newentry'),
+    path('log/<uuid:task_id>', EntryListView.as_view(), name='wt-logentrylist'),
+    path('settings', SettingsView.as_view(), name='wt-settings'),
+    #path('resetpassword/<str:token>', PasswordResetView.as_view(), name='wt-passwordreset'),
     path('', RedirectView.as_view(url=reverse_lazy('wt-login'))),
 ]

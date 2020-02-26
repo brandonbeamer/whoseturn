@@ -1,0 +1,51 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/entry_list.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : View Log Entries{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Task History</div>
+
+<div class="toolbar">
+  <a href="{% url 'wt-dashboard' %}" class="material-icons" title="back to dashboard">dashboard</a>
+</div>
+
+<p>The <strong>{{task}}</strong> group has {{member_count}}
+  {% if member_count == 1%}member{% else %}members{% endif %}:</p>
+
+<ul class="member-list">
+  {% for item in member_list %}
+    <li>{{item.user.get_full_name}} (taken {{item.turn_count}}
+      {% if item.turn_count == 1 %}turn{% else %}turns{% endif %})</li>
+  {% endfor %}
+</ul>
+
+<p style="margin-top: 2em;">Its history is as follows:</p>
+
+<ul class="entry-list">
+  {% for entry in entries %}
+    <li>
+      <div class="whowhen">
+        <strong>{{entry.user.get_full_name}}</strong> on {{entry.timestamp}}
+      </div>
+      <div class="comment">
+        {{entry.comment}}
+      </div>
+    </li>
+  {% endfor %}
+    <li>
+      <div class="whowhen">
+        <strong>Created</strong> on {{task.timestamp}}
+      </div>
+      <div class="comment">
+        by {{task.creator.get_full_name}}
+      </div>
+    </li>
+</ul>
+
+{% endblock %}

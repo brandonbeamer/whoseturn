@@ -1,0 +1,36 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/task_list.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Manage Tasks{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Manage Tasks</div>
+
+<div class="toolbar">
+  <a href="{% url 'wt-dashboard' %}" class="material-icons" title="back to dashboard">dashboard</a>
+</div>
+
+<p>Your shared tasks:</p>
+
+<ul class="task-list">
+  {% for task in task_list %}
+    <li>
+      <div class="task-name">
+        {{task.name}}
+      </div>
+      <div class="invite">
+        <a class="material-icons" href="{% url 'wt-taskinvite' task_id=task.id%}" title="invite">person_add</a>
+      </div>
+      <div class="remove">
+        <a class="material-icons" href="{% url 'wt-taskdelete' task_id=task.id%}" title="remove task">remove_circle_outline</a>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

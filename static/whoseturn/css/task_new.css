@@ -161,28 +161,4 @@ main {
   text-shadow: 0 0 0.2em pink;
 }
 
-.check-task {
-  font-size: 3em;
-  text-align: center;
-}
-.check-task a {
-  font-weight: bold;
-  color: green;
-}
-.check-task a:hover {
-  text-shadow: 0 0 0.2em lightgreen;
-}
-
-ul.turn-list {
-  list-style: none;
-  padding: 0;
-}
-ul.turn-list li {
-  margin-top: 2em;
-}
-ul.turn-list li .turn-name {
-  font-weight: bold;
-  font-size: 1.5em;
-}
-
-/*# sourceMappingURL=dashboard.css.map */
+/*# sourceMappingURL=task_new.css.map */
