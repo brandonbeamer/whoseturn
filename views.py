@@ -100,19 +100,25 @@ def send_password_reset(user, email):
     message.attach_alternative(html_message, 'text/html')
     message.send()
 
-
 def get_member_turns(task):
     """
     Returns a dictionary {username: turn_count} for each user in task.members
+
     """
     entries = LogEntry.objects.filter(task=task)
     turns = {}
 
     for user in task.members.all():
-        turns[user.username] = Membership.objects.get(user=user, task=task).gifted_turns
+        membership = Membership.objects.get(user=user, task=task)
+        count = membership.turn_count
+        if count == -1:
+            # count manually
+            count = entries.filter(user=user).count()
+            # and update
+            membership.turn_count = count
+            membership.save()
 
-    for entry in entries:
-        turns[entry.user.username] += 1
+        turns[user.username] = count
 
     return turns
 
@@ -212,7 +218,7 @@ class DashboardView(View):
                 max_turns = max(turns.values())
                 task.members.add(request.user)
                 membership = Membership.objects.get(task=task, user=request.user)
-                membership.gifted_turns = max_turns
+                membership.turn_count = max_turns
                 membership.save()
                 invite.delete()
                 del request.session[INVITE_TOKEN_KEY]
@@ -257,14 +263,14 @@ class DashboardView(View):
                 least_frequent_turns = turns[username]
                 least_frequent_users = set([username])
 
-        # least_frequent_users must be > 1
-        # timestamps are ordered by -timestamp, so most recent entry sould be first
-
         if len(least_frequent_users) == 1 or least_frequent_turns == 0:
             return next(iter(least_frequent_users))
 
+
+
         # Here there are >1 LFUs and they've all gone >0 times
         # Return the one that went least recently
+        # timestamps are ordered by -timestamp, so most recent entry sould be first
         earliest_time = None
         least_recent_user = None
         for username in least_frequent_users:
@@ -419,6 +425,10 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
         entry = form.save(commit=False)
         entry.user = self.request.user
         entry.save()
+        task = form.cleaned_data['task']
+        membership = Membership.objects.get(task=task, user=self.request.user)
+        membership.turn_count += 1
+        membership.save()
         return
 
 class EntryListView(UserPassesTestMixin, TemplateView):

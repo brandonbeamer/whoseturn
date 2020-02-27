@@ -3,7 +3,7 @@
 {% load widget_tweaks %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+<link rel="stylesheet" href="{% static 'whoseturn/css/entry_new.css' %}">
 {% endblock %}
 
 {% block title %}Whose Turn Is It : New Entry{% endblock %}
@@ -11,7 +11,9 @@
 {% block main %}
 <div class="title">Whose Turn Is It?</div>
 <div class="subtitle">Create a New Log Entry</div>
-
+<div class="toolbar">
+  <a href="{% url 'wt-dashboard' %}" class="material-icons" title="back to dashboard">dashboard</a>
+</div>
 <form method="post">
   {% csrf_token %}
 

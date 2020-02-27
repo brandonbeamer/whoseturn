@@ -22,7 +22,10 @@ class Task(models.Model):
 class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    gifted_turns = models.IntegerField(default=0)
+    # gifted_turns = models.IntegerField(default=0)
+    # keep track of turn counts to reduce db accesses
+    # setting this to -1 will trigger an actual count via the LogEntries
+    turn_count = models.IntegerField(default=-1)
 
 class LogEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='+',
