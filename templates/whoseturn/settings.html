@@ -62,6 +62,30 @@
   </p>
 </form>
 
+<form method="post">
+  {% csrf_token %}
+  {{password_change_form.non_field_errors}}
+  <input type="hidden" name="form_name" value="password_change">
+  <p class="form-section">Change Password:</p>
+  <p class="form-header">Current Password:</p>
+  <p class="form-fields">
+    {% render_field password_change_form.old_password placeholder="Old Password" style="width:100%" %}
+  </p>
+  {{password_change_form.old_password.errors}}
+  <p class="form-header">New Password:</p>
+  <p class="form-fields">
+    {% render_field password_change_form.new_password1 placeholder="New Password" style="width:100%" %}
+  </p>
+  {{password_change_form.new_password1.errors}}
+  <p class="form-fields">
+    {% render_field password_change_form.new_password2 placeholder="Confirm New Password" style="width:100%" %}
+  </p>
+  {{password_change_form.new_password2.errors}}
+  <p class="form-submit">
+    <input type="submit" name="submit" value="Update">
+  </p>
+</form>
+
 <!-- <form method="post">
 
 </form> -->

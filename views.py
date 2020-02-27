@@ -2,10 +2,11 @@ from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.views.generic import TemplateView, FormView, View
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.models import Group, User
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, HttpResponseForbidden
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.utils import timezone
@@ -20,7 +21,7 @@ from datetime import datetime
 from .forms import (
     FullUserCreationForm, UserSettingsForm, UserDetailsForm,
     CustomAuthenticationForm, TaskForm, TaskInviteForm, LogEntryForm,
-    PasswordResetForm)
+    PasswordResetStartForm)
 from .models import (
     UserSettings, Task, Invite, LogEntry, Membership,
     PasswordReset)
@@ -49,9 +50,13 @@ def send_invites(user, task, recipients):
         'task': task,
     }
 
+    # TODO: Remove any invites more than a week old
+
     for recipient in recipients:
         token = token_urlsafe(16)
         invite_url = settings.SITE_URL + reverse('wt-invite', kwargs={'token': token})
+
+
 
         # Create the actual invite in the db
         Invite(task=task, token=token).save()
@@ -70,6 +75,32 @@ def send_invites(user, task, recipients):
         message.attach_alternative(html_message, 'text/html')
         message.send()
 
+def send_password_reset(user, email):
+    token = token_urlsafe(32)
+    reset_url = settings.SITE_URL + reverse('wt-passwordresetfinish',
+                                            kwargs={'token': token})
+
+    # TODO: Remove any previous resets that are more than an hour old
+
+    reset = PasswordReset()
+    reset.user = user
+    reset.token = token
+    reset.save()
+
+    html_message = render_to_string('whoseturn/password_reset_email.html',
+        {'reset_url': reset_url, 'use_html': True})
+    txt_message = render_to_string('whoseturn/password_reset_email.html',
+        {'reset_url': reset_url, 'use_html': False})
+    message = EmailMultiAlternatives(
+        subject="Whose Turn Is It : Password Reset",
+        body=txt_message,
+        from_email=f'WhoseTurnIsIt <{settings.WHOSETURNISIT_EMAIL}>',
+        to=[email]
+    )
+    message.attach_alternative(html_message, 'text/html')
+    message.send()
+
+
 def get_member_turns(task):
     """
     Returns a dictionary {username: turn_count} for each user in task.members
@@ -84,8 +115,6 @@ def get_member_turns(task):
         turns[entry.user.username] += 1
 
     return turns
-
-# TODO: Add send_password_reset function
 
 class LoginView(View):
     template_name = 'whoseturn/login.html'
@@ -273,14 +302,17 @@ class TaskInviteView(UserPassesTestMixin, TemplateView):
     success_template = 'whoseturn/generic_success.html'
 
     def get_context_data(self, **kwargs):
-        task = get_object_or_404(Task, id=kwargs['task_id'])
+        task = get_object_or_404(Task, id=kwargs['task_id'],
+                                       members__username=self.request.user.username)
+
         context = {
             'form': TaskInviteForm(),
         }
         return context
 
     def post(self, request, **kwargs):
-        task = get_object_or_404(Task, id=kwargs['task_id'])
+        task = get_object_or_404(Task, id=kwargs['task_id'],
+                                       members__username=request.user.username)
         form = TaskInviteForm(request.POST)
         if form.is_valid():
             emails = form.cleaned_data['invite_emails']
@@ -299,14 +331,16 @@ class TaskDeleteView(UserPassesTestMixin, TemplateView):
     success_template = 'whoseturn/generic_success.html'
 
     def get_context_data(self, **kwargs):
-        task = get_object_or_404(Task, id=kwargs['task_id'])
+        task = get_object_or_404(Task, id=kwargs['task_id'],
+                                 members__username=self.request.user.username)
         context = {
             'task': task,
         }
         return context
 
     def post(self, request, **kwargs):
-        task = get_object_or_404(Task, id=kwargs['task_id'])
+        task = get_object_or_404(Task, id=kwargs['task_id'],
+                                 members__username=self.request.user.username)
         confirm = request.POST.get('confirm')
         if confirm == 'confirm':
             task.members.remove(self.request.user)
@@ -365,7 +399,8 @@ class EntryListView(UserPassesTestMixin, TemplateView):
         return super().dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
-        task = get_object_or_404(Task, id=kwargs['task_id'])
+        task = get_object_or_404(Task, id=kwargs['task_id'],
+                                 members__username=self.request.user.username)
         turns = get_member_turns(task)
 
         context = {
@@ -389,7 +424,7 @@ class SettingsView(UserPassesTestMixin, TemplateView):
         context = {
             'settings_form': UserSettingsForm(instance=self.request.user.settings),
             'details_form': UserDetailsForm(instance=self.request.user),
-            # TODO: Add password reset stuff
+            'password_change_form': PasswordChangeForm(self.request.user),
         }
         return context
 
@@ -418,18 +453,63 @@ class SettingsView(UserPassesTestMixin, TemplateView):
                 context['updated_info'] = 'personal details'
 
             context['details_form'] = form
+        elif form_name == 'password_change':
+            form = PasswordChangeForm(request.user, request.POST)
+            if form.is_valid():
+                form.save()
+                update_session_auth_hash(request, request.user)
+                context['updated_info'] = 'password'
+            context['password_change_form'] = form
 
         return render(request, self.template_name, context)
 
-class PasswordResetView(TemplateView):
-    template_name = 'whoseturn/password_reset.html'
+class PasswordResetView(View):
+    start_template = 'whoseturn/password_reset_start.html'
+    finish_template = 'whoseturn/password_reset_finish.html'
     success_template = 'whoseturn/generic_success.html'
 
-    def get_context_data(self, **kwargs):
-        token = kwargs['token']
-        reset = get_object_or_404(PasswordReset, token=token)
-        form = PasswordResetForm(reset.user)
-        context = {
-            'form': form,
-        }
-        return context
+    def get(self, request, **kwargs):
+        token = kwargs.get('token', None)
+
+        if token is None:
+            # Start Process
+            form = PasswordResetStartForm()
+            return render(request, self.start_template,
+                {'form': form})
+        else:
+            # Test token validity and display setpasswordform
+            reset = get_object_or_404(PasswordReset, token=token)
+            form = SetPasswordForm(reset.user)
+            return render(request, self.finish_template,
+                {'form': form, 'user': reset.user})
+
+    def post(self, request, **kwargs):
+        token = kwargs.get('token', None)
+        if token is None:
+            # Send reset email
+            form = PasswordResetStartForm(request.POST)
+            if form.is_valid():
+                user = User.objects.get(username=form.cleaned_data.get('username'))
+                email = user.email
+                send_password_reset(user, email)
+                return render(request, self.success_template,
+                    {
+                        'redirect_url': reverse('wt-login'),
+                        'message': 'Password reset email sent.'
+                    })
+            else:
+                return render(request, self.start_template, {'form': form})
+        else:
+            # reset password
+            reset = get_object_or_404(PasswordReset, token=token)
+            form = SetPasswordForm(reset.user, request.POST)
+            if form.is_valid():
+                form.save()
+                return render(request, self.success_template,
+                    {
+                        'redirect_url': reverse('wt-login'),
+                        'message': 'Password successfully reset!',
+                    })
+            else:
+                return render(request, self.finish_template,
+                    {'form': form, 'user': reset.user})

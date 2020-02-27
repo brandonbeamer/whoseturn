@@ -49,4 +49,4 @@ class Invite(models.Model):
 
 class PasswordReset(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.CharField(max_length=42) # 32 bytes of randomness base64-encoded
+    token = models.CharField(max_length=43) # 32 bytes of randomness base64-encoded

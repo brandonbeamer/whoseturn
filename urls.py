@@ -23,6 +23,7 @@ urlpatterns = [
     path('newentry', NewEntryView.as_view(), name='wt-newentry'),
     path('log/<uuid:task_id>', EntryListView.as_view(), name='wt-logentrylist'),
     path('settings', SettingsView.as_view(), name='wt-settings'),
-    #path('resetpassword/<str:token>', PasswordResetView.as_view(), name='wt-passwordreset'),
+    path('resetpassword/<str:token>', PasswordResetView.as_view(), name='wt-passwordresetfinish'),
+    path('resetpassword', PasswordResetView.as_view(), name='wt-passwordresetstart'),
     path('', RedirectView.as_view(url=reverse_lazy('wt-login'))),
 ]

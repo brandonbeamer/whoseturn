@@ -68,23 +68,26 @@ class LogEntryForm(ModelForm):
         model = LogEntry
         fields = ['task', 'comment']
 
-class PasswordResetForm(Form):
-    def __init__(self, user, postdata=None):
-        super().__init__(postdata)
-        self.user = user
+class PasswordResetStartForm(Form):
+    username = CharField(max_length=150)
 
-    password1 = CharField(widget=PasswordInput)
-    password2 = CharField(widget=PasswordInput)
-
-    def clean_password1(self):
-        data = self.cleaned_data['recipients']
-        validate_password(data, self.user)
-        return data
-
-    def clean(self):
-        cleaned_data = super().clean()
-        pw1 = self.cleaned_data.get('password1')
-        pw2 = self.cleaned_data.get('password2')
-        if pw1 != pw2:
-            raise ValidationError("Password do not match", 'password_mismatch')
-        return
+# class PasswordResetFinishForm(Form):
+#     def __init__(self, user, postdata=None):
+#         super().__init__(postdata)
+#         self.user = user
+#
+#     password1 = CharField(widget=PasswordInput)
+#     password2 = CharField(widget=PasswordInput)
+#
+#     def clean_password1(self):
+#         data = self.cleaned_data['recipients']
+#         validate_password(data, self.user)
+#         return data
+#
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         pw1 = self.cleaned_data.get('password1')
+#         pw2 = self.cleaned_data.get('password2')
+#         if pw1 != pw2:
+#             raise ValidationError("Password do not match", 'password_mismatch')
+#         return
