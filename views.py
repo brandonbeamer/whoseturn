@@ -241,16 +241,49 @@ class DashboardView(View):
     def get_next_turn(self, task):
         turns = get_member_turns(task)
 
-        least_frequent_user = None
+        least_frequent_users = set()
         least_frequent_turns = 0
         for username in turns:
-            if (least_frequent_user is None
-                or turns[username] < least_frequent_turns):
-
+            if not least_frequent_users:
+                least_frequent_users.add(username)
                 least_frequent_turns = turns[username]
-                least_frequent_user = username
+                continue
 
-        return least_frequent_user
+            if turns[username] == least_frequent_turns:
+                least_frequent_users.add(username)
+                continue
+
+            if turns[username] < least_frequent_turns:
+                least_frequent_turns = turns[username]
+                least_frequent_users = set([username])
+
+        # least_frequent_users must be > 1
+        # timestamps are ordered by -timestamp, so most recent entry sould be first
+
+        if len(least_frequent_users) == 1 or least_frequent_turns == 0:
+            return next(iter(least_frequent_users))
+
+        # Here there are >1 LFUs and they've all gone >0 times
+        # Return the one that went least recently
+        earliest_time = None
+        least_recent_user = None
+        for username in least_frequent_users:
+            user = User.objects.get(username=username)
+            latest_entry = LogEntry.objects.filter(task=task, user=user)[:1]
+
+            # Corner case: a user is here because of only gifted turns, but has
+            # no real logentry in the db. If we encounter such a user, we
+            # simply choose them, there's no way to rationally perfer anyone
+            # else.
+            if not latest_entry:
+                return username
+
+            latest_entry = latest_entry[0]
+            if earliest_time is None or latest_entry.timestamp < earliest_time:
+                earliest_time = latest_entry.timestamp
+                least_recent_user = username
+
+        return least_recent_user
 
 class NewTaskView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test
