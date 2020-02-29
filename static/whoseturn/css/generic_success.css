@@ -96,12 +96,6 @@ a:hover {
   text-align: center;
 }
 
-.generic-success {
-  font-size: 4em;
-  color: green;
-  text-align: center;
-}
-
 .title {
   font-size: 2em;
   font-weight: bold;
@@ -145,10 +139,31 @@ main {
   }
 }
 
-.message {
+.material-icons.success {
+  font-size: 4em;
+  color: green;
+  text-align: center;
+}
+
+.material-icons.error {
+  font-size: 4em;
+  color: darkred;
+  text-align: center;
+}
+
+.message.success {
   color: green;
   text-align: center;
   font-weight: bold;
+  margin-top: 1em;
+}
+
+.message.error {
+  color: darkred;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 /*# sourceMappingURL=generic_success.css.map */

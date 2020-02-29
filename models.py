@@ -49,7 +49,9 @@ class UserSettings(models.Model):
 class Invite(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     token = models.CharField(max_length=22) # 16 bytes of randomness base64-encoded
+    timestamp = models.DateTimeField(auto_now_add=True)
 
 class PasswordReset(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=43) # 32 bytes of randomness base64-encoded
+    timestamp = models.DateTimeField(auto_now_add=True)

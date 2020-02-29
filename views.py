@@ -8,13 +8,14 @@ from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http.response import HttpResponseRedirect, HttpResponseForbidden
 from django.core.mail import EmailMultiAlternatives
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils import timezone
 
 from secrets import token_urlsafe
 from collections import Counter
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # from django.contrib.auth.forms import AuthenticationForm
 # from django.contrib.auth.forms import UserCreationForm
@@ -25,7 +26,9 @@ from .forms import (
 from .models import (
     UserSettings, Task, Invite, LogEntry, Membership,
     PasswordReset)
-from .constants import APP_GROUP_NAME, INVITE_TOKEN_KEY
+from .constants import (
+    APP_GROUP_NAME, INVITE_TOKEN_KEY,
+    PASSWORD_RESET_TOKEN_LIFESPAN, INVITE_TOKEN_LIFESPAN)
 # Create your views here.
 
 def logged_in_test(self):
@@ -42,7 +45,6 @@ def logged_in_test(self):
         return False
 
     return True
-
 
 def send_invites(user, task, recipients):
     base_context = {
@@ -121,6 +123,14 @@ def get_member_turns(task):
         turns[user.username] = count
 
     return turns
+
+def expire_reset_tokens():
+    expiry_time = timezone.now() - timedelta(days=PASSWORD_RESET_TOKEN_LIFESPAN)
+    PasswordReset.objects.filter(timestamp__lt=expiry_time).delete()
+
+def expire_invite_tokens():
+    expiry_time = timezone.now() - timedelta(days=INVITE_TOKEN_LIFESPAN)
+    Invite.objects.filter(timestamp__lt=expiry_time).delete()
 
 class LoginView(View):
     template_name = 'whoseturn/login.html'
@@ -203,6 +213,7 @@ class RegisterView(TemplateView):
 class DashboardView(View):
     test_func = logged_in_test
     template_name = 'whoseturn/dashboard.html'
+    error_template = 'whoseturn/generic_error.html'
 
     def get(self, request, **kwargs):
         if self.test_func():
@@ -212,18 +223,28 @@ class DashboardView(View):
             invite_token = request.session.get(INVITE_TOKEN_KEY, None)
             if invite_token is not None:
                 # add user to task and delete invite
-                invite = Invite.objects.get(token=invite_token)
-                task = invite.task
-                turns = get_member_turns(task)
-                max_turns = max(turns.values())
-                task.members.add(request.user)
-                membership = Membership.objects.get(task=task, user=request.user)
-                membership.turn_count = max_turns
-                membership.save()
-                invite.delete()
-                del request.session[INVITE_TOKEN_KEY]
+                expire_invite_tokens()
+                try:
+                    invite = Invite.objects.get(token=invite_token)
+                except ObjectDoesNotExist:
+                    invite = None
 
-            # render template
+                del request.session[INVITE_TOKEN_KEY]
+                if invite is not None:
+                    task = invite.task
+                    turns = get_member_turns(task)
+                    max_turns = max(turns.values())
+                    task.members.add(request.user)
+                    membership = Membership.objects.get(task=task, user=request.user)
+                    membership.turn_count = max_turns
+                    membership.save()
+                    invite.delete()
+                else:
+                    return render(request, self.error_template,
+                    {'message': 'Invite does not exist or has expired.'
+                    ' Ask your buddy to another and keep in '
+                    f'mind, they only last {INVITE_TOKEN_LIFESPAN} days!'})
+
             context = self.get_context_data(**kwargs)
             return render(request, self.template_name, context)
         else:
@@ -510,6 +531,7 @@ class PasswordResetView(View):
     start_template = 'whoseturn/password_reset_start.html'
     finish_template = 'whoseturn/password_reset_finish.html'
     success_template = 'whoseturn/generic_success.html'
+    error_template = 'whoseturn/generic_error.html'
 
     def get(self, request, **kwargs):
         token = kwargs.get('token', None)
@@ -521,10 +543,19 @@ class PasswordResetView(View):
                 {'form': form})
         else:
             # Test token validity and display setpasswordform
-            reset = get_object_or_404(PasswordReset, token=token)
-            form = SetPasswordForm(reset.user)
-            return render(request, self.finish_template,
-                {'form': form, 'user': reset.user})
+            expire_reset_tokens()
+            try:
+                reset = PasswordReset.objects.get(token=token)
+            except ObjectDoesNotExist:
+                reset = None
+
+            if reset is not None:
+                form = SetPasswordForm(reset.user)
+                return render(request, self.finish_template,
+                    {'form': form, 'user': reset.user})
+            else:
+                return render(request, self.error_template,
+                    {'message': 'Reset token does not exist or has expired.'})
 
     def post(self, request, **kwargs):
         token = kwargs.get('token', None)

@@ -5,24 +5,22 @@
 <link rel="stylesheet" href="{% static 'whoseturn/css/generic_success.css' %}">
 {% endblock %}
 
-{% block title %}Whose Turn Is It : Success!{% endblock %}
+{% block title %}Whose Turn Is It : Error :(){% endblock %}
 
 {% block main %}
 <div class="title">Whose Turn Is It?</div>
-<div class="subtitle">Success!</div>
+<div class="subtitle">Error :(</div>
 
 <div class="centered">
-  <i class="material-icons success">check_circle_outline</i>
+  <i class="material-icons error">error_outline</i>
 </div>
 
 {% if message %}
-<div class="message success">
+<div class="message error">
   {{message}}
 </div>
 {% endif %}
 
-<script>
-  setTimeout(() => {window.location.replace("{{redirect_url}}")}, 1000)
-</script>
+<p class="centered">Back to <a href="{% url 'wt-login' %}">Login Page</a>.</p>
 
 {% endblock %}
