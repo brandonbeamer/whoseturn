@@ -47,7 +47,16 @@ def logged_in_test(self):
 
     return True
 
+def expire_reset_tokens():
+    expiry_time = timezone.now() - timedelta(days=PASSWORD_RESET_TOKEN_LIFESPAN)
+    PasswordReset.objects.filter(timestamp__lt=expiry_time).delete()
+
+def expire_invite_tokens():
+    expiry_time = timezone.now() - timedelta(days=INVITE_TOKEN_LIFESPAN)
+    Invite.objects.filter(timestamp__lt=expiry_time).delete()
+
 def send_invites(user, task, recipients):
+    expire_invite_tokens()
     base_context = {
         'user': user,
         'task': task,
@@ -79,6 +88,7 @@ def send_invites(user, task, recipients):
         message.send()
 
 def send_password_reset(user, email):
+    expire_reset_tokens()
     token = token_urlsafe(32)
     reset_url = settings.SITE_URL + reverse('wt-passwordresetfinish',
                                             kwargs={'token': token})
@@ -118,13 +128,6 @@ def get_member_turns(task):
 
     return turns
 
-def expire_reset_tokens():
-    expiry_time = timezone.now() - timedelta(days=PASSWORD_RESET_TOKEN_LIFESPAN)
-    PasswordReset.objects.filter(timestamp__lt=expiry_time).delete()
-
-def expire_invite_tokens():
-    expiry_time = timezone.now() - timedelta(days=INVITE_TOKEN_LIFESPAN)
-    Invite.objects.filter(timestamp__lt=expiry_time).delete()
 
 class LoginView(View):
     template_name = 'whoseturn/login.html'
@@ -216,8 +219,6 @@ class DashboardView(View):
             # check for pending invite
             invite_token = request.session.get(INVITE_TOKEN_KEY, None)
             if invite_token is not None:
-                # add user to task and delete invite
-                expire_invite_tokens()
                 try:
                     invite = Invite.objects.get(token=invite_token)
                 except ObjectDoesNotExist:
@@ -533,7 +534,6 @@ class PasswordResetView(View):
                 {'form': form})
         else:
             # Test token validity and display setpasswordform
-            expire_reset_tokens()
             try:
                 reset = PasswordReset.objects.get(token=token)
             except ObjectDoesNotExist:
