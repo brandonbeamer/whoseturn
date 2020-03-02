@@ -1,9 +1,12 @@
 import uuid
 import pytz
 from django.db import models
+from django.dispatch import receiver
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save, post_delete
 from django.contrib.auth import get_user_model
+#from django.core.signals import p
 
 class Task(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -19,6 +22,19 @@ class Task(models.Model):
     def get_absolute_url(self):
         return reverse('wt-logentries', kwargs={'uuid': self.id})
 
+class LogEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='+',
+        null=True)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='entries')
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    comment = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.user} did '{self.task}' at {self.timestamp}"
+
+    class Meta:
+        ordering = ['-timestamp']
+
 class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
@@ -27,18 +43,46 @@ class Membership(models.Model):
     # setting this to -1 will trigger an actual count via the LogEntries
     turn_count = models.IntegerField(default=-1)
 
-class LogEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='+',
-        null=True)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='entries')
-    timestamp = models.DateTimeField(auto_now_add=True)
-    comment = models.CharField(max_length=100, blank=True)
+    def get_turn_count(self):
+        if self.turn_count == -1:
+            # Update
+            count = LogEntry.objects.filter(user=self.user, task=self.task).count()
+            self.turn_count = count
+            self.save()
 
-    def __str__(self):
-        return f"{self.user} did '{self.task}' at {self.timestamp}"
+        return self.turn_count
 
-    class Meta:
-        ordering = ['-timestamp']
+    # automatically update turn count
+    @staticmethod
+    @receiver(post_save, sender=LogEntry)
+    def on_logentry_save(**kwargs):
+        if not kwargs.get('created'):
+            return
+        task = kwargs.get('instance').task
+        user = kwargs.get('instance').user
+        memb = Membership.objects.get(user=user, task=task)
+        if memb.turn_count == -1:
+            # Actually count
+            count = LogEntry.objects.filter(user=user, task=task).count()
+            memb.turn_count = count
+        else:
+            memb.turn_count += 1
+
+        memb.save()
+
+    @staticmethod
+    @receiver(post_delete, sender=LogEntry)
+    def on_logentry_delete(**kwargs):
+        inst = kwargs.get('instance')
+        memb = Membership.objects.get(user=inst.user, task=inst.task)
+        if memb.turn_count == -1:
+            # Actually count
+            count = LogEntry.objects.filter(user=inst.user, task=inst.task).count()
+            memb.turn_count = count
+        else:
+            memb.turn_count -= 1
+        memb.save()
+
 
 class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')

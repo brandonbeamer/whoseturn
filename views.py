@@ -12,10 +12,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils import timezone
 
-from secrets import token_urlsafe
-from collections import Counter
-import pytz
 from datetime import datetime, timedelta
+from secrets import token_urlsafe
+
+import pytz
+
 
 # from django.contrib.auth.forms import AuthenticationForm
 # from django.contrib.auth.forms import UserCreationForm
@@ -112,14 +113,7 @@ def get_member_turns(task):
 
     for user in task.members.all():
         membership = Membership.objects.get(user=user, task=task)
-        count = membership.turn_count
-        if count == -1:
-            # count manually
-            count = entries.filter(user=user).count()
-            # and update
-            membership.turn_count = count
-            membership.save()
-
+        count = membership.get_turn_count()
         turns[user.username] = count
 
     return turns
@@ -294,7 +288,7 @@ class DashboardView(View):
         # timestamps are ordered by -timestamp, so most recent entry sould be first
         earliest_time = None
         least_recent_user = None
-        for username in least_frequent_users:
+        for username in sorted(list(least_frequent_users)):
             user = User.objects.get(username=username)
             latest_entry = LogEntry.objects.filter(task=task, user=user)[:1]
 
@@ -445,11 +439,7 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
     def form_valid(self, form):
         entry = form.save(commit=False)
         entry.user = self.request.user
-        entry.save()
-        task = form.cleaned_data['task']
-        membership = Membership.objects.get(task=task, user=self.request.user)
-        membership.turn_count += 1
-        membership.save()
+        entry.save() # membership automatically updated
         return
 
 class EntryListView(UserPassesTestMixin, TemplateView):
