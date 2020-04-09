@@ -21,7 +21,7 @@
   {% for task in task_list %}
     <li>
       <div class="task-name">
-        {{task.name}}
+        <a href="{% url 'wt-logentrylist' task_id=task.id %}">{{task.name}}</a>
       </div>
       <div class="invite">
         <a class="material-icons" href="{% url 'wt-taskinvite' task_id=task.id%}" title="invite">person_add</a>
