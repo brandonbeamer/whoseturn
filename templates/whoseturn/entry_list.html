@@ -25,13 +25,23 @@
   {% endfor %}
 </ul>
 
-<p style="margin-top: 2em;">Its history is as follows:</p>
+<!-- <div class="history-line"> -->
+<p style="margin-top: 2em;">Its history is as follows: </p>
+
+<!-- </div> -->
+
 
 <ul class="entry-list">
   {% for entry in entries %}
     <li>
       <div class="whowhen">
-        <strong>{{entry.user.get_full_name}}</strong> on {{entry.timestamp}}
+        <div>
+           <strong>{{entry.user.get_full_name}}</strong> on {{entry.date}}
+        </div>
+        <div>{% if user == entry.user %}
+          <a class="material-icons edit" href="{% url 'wt-logentryedit' entry_id=entry.id %}">edit</a>
+          <a class="material-icons remove" href="{% url 'wt-logentrydelete' entry_id=entry.id %}">remove_circle_outline</a>
+        {% endif %}</div>
       </div>
       <div class="comment">
         {{entry.comment}}

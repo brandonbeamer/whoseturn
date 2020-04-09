@@ -21,7 +21,17 @@ ul.entry-list {
     margin: 0;
     padding: 1em;
     .whowhen {
-
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .edit {
+      font-size: 1.2em;
+    }
+    .remove {
+      font-size: 1.2em;      
+      color: red;
+      margin-left: 0.5em;
     }
     .comment {
       color: darkgray;
@@ -32,3 +42,9 @@ ul.entry-list {
     background: base.$row_even_color;
   }
 }
+
+// .history-line {
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: flex-end;
+// }

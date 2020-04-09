@@ -6,34 +6,34 @@
 <link rel="stylesheet" href="{% static 'whoseturn/css/entry_new.css' %}">
 {% endblock %}
 
-{% block title %}Whose Turn Is It : New Entry{% endblock %}
+{% block title %}Whose Turn Is It : Edit Entry{% endblock %}
 
 {% block main %}
 <div class="title">Whose Turn Is It?</div>
-<div class="subtitle">Create a New Log Entry</div>
-<div class="toolbar">
+<div class="subtitle">Edit Log Entry</div>
+<!-- <div class="toolbar">
   <a href="{% url 'wt-dashboard' %}" class="material-icons" title="back to dashboard">dashboard</a>
-</div>
+</div> -->
 <form method="post">
   {% csrf_token %}
 
   {{user_form.non_field_errors}}
 
-  <p class="form-header centered">What did you do?</p>
+  <p class="form-header centered">Relevant Task:</p>
   <p class="form-fields centered">
     {% render_field form.task %}
   </p>
 
   {{form.task.errors}}
 
-  <p class="form-header centered">When did you do it?</p>
+  <p class="form-header centered">Completion Date:</p>
     <p class="form-fields centered">
     {% render_field form.date style="text-align: center" %}
   </p>
   <p class="centered" style="color: gray; font-size: 0.8em;">(YYYY-MM-DD format)</p>
   {{form.date.errors}}
 
-  <p class="form-header centered">Leave a comment?</p>
+  <p class="form-header centered">Comment:</p>
 
   <p class="form-fields centered">
     {% render_field form.comment style="width:100%" %}
@@ -42,7 +42,9 @@
   {{form.comment.errors}}
 
   <p class="form-submit centered">
-    <input type="submit" name="submit" value="Go!">
+    <input type="submit" name="submit" value="Save Changes">
+    <input type="button" name="cancel" value="Cancel" class="cancelbutton"
+      onclick="window.location.href='{% url 'wt-logentrylist' task_id=entry.task.id %}'">
   </p>
 
 </form>

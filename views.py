@@ -422,6 +422,12 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
     template_name = 'whoseturn/entry_new.html'
     success_template = 'whoseturn/generic_success.html'
 
+    def dispatch(self, request, **kwargs):
+        tzname = request.user.settings.timezone
+        if tzname:
+            timezone.activate(pytz.timezone(tzname))
+        return super().dispatch(request, **kwargs)
+
     def get_context_data(self, **kwargs):
         form = LogEntryForm(self.request.user)
         context = {'form': form}
@@ -436,6 +442,48 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
                  'message': "Your contribution has been noted!"})
         else:
             return render(request, self.template_name, {'form': form})
+
+    def form_valid(self, form):
+        entry = form.save(commit=False)
+        entry.user = self.request.user
+        entry.save() # membership automatically updated
+        return
+
+class EntryEditView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/entry_edit.html'
+    success_template = 'whoseturn/generic_success.html'
+
+    def dispatch(self, request, **kwargs):
+        tzname = request.user.settings.timezone
+        if tzname:
+            timezone.activate(pytz.timezone(tzname))
+        return super().dispatch(request, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        entry = get_object_or_404(LogEntry,
+                                  id=kwargs['entry_id'],
+                                  user=self.request.user)
+        form = LogEntryForm(self.request.user, instance=entry)
+        context = {
+            'entry': entry,
+            'form': form
+        }
+        return context
+
+    def post(self, request, **kwargs):
+        entry = get_object_or_404(LogEntry,
+                                  id=kwargs['entry_id'],
+                                  user=self.request.user)
+
+        form = LogEntryForm(request.user, request.POST, instance=entry)
+        if form.is_valid():
+            self.form_valid(form)
+            return render(request, self.success_template,
+                {'redirect_url': reverse('wt-logentrylist', kwargs={'task_id': entry.task.id}),
+                 'message': "Changes have been saved!"})
+        else:
+            return render(request, self.template_name, {'entry': entry, 'form': form})
 
     def form_valid(self, form):
         entry = form.save(commit=False)
@@ -460,6 +508,7 @@ class EntryListView(UserPassesTestMixin, TemplateView):
 
         context = {
             'task': task,
+            'user': self.request.user,
             'member_count': len(turns),
             'member_list': sorted([
                 {'user': task.members.get(username=_),
@@ -469,6 +518,36 @@ class EntryListView(UserPassesTestMixin, TemplateView):
             'entries': task.entries.all(),
         }
         return context
+
+class EntryDeleteView(UserPassesTestMixin, TemplateView):
+    test_func = logged_in_test
+    template_name = 'whoseturn/entry_delete.html'
+    success_template = 'whoseturn/generic_success.html'
+
+    def get_context_data(self, **kwargs):
+        entry = get_object_or_404(LogEntry,
+                                 id=kwargs['entry_id'],
+                                 user=self.request.user)
+        context = {
+            'entry': entry,
+        }
+        return context
+
+    def post(self, request, **kwargs):
+        entry = get_object_or_404(LogEntry,
+                                 id=kwargs['entry_id'],
+                                 user=self.request.user)
+        task = entry.task
+        confirm = request.POST.get('confirm')
+        if confirm == 'confirm':
+            entry.delete()
+            context = {
+                'redirect_url': reverse('wt-logentrylist', kwargs={'task_id': task.id}),
+                'message': "Entry deleted!"
+            }
+            return render(request, self.success_template, context)
+        else:
+            return HttpResponseRedirect(reverse('wt-logentrylist', kwargs={'task_id': task.id}))
 
 class SettingsView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test

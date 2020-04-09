@@ -5,7 +5,7 @@ from .views import (
     DashboardView,
     NewTaskView, TaskListView, TaskDeleteView, TaskInviteView,
     AcceptInviteView,
-    NewEntryView, EntryListView,
+    NewEntryView, EntryListView, EntryDeleteView, EntryEditView,
     SettingsView, PasswordResetView)
 
 
@@ -22,6 +22,8 @@ urlpatterns = [
     path('removetask/<uuid:task_id>', TaskDeleteView.as_view(), name='wt-taskdelete'),
     path('newentry', NewEntryView.as_view(), name='wt-newentry'),
     path('log/<uuid:task_id>', EntryListView.as_view(), name='wt-logentrylist'),
+    path('remove_entry/<int:entry_id>', EntryDeleteView.as_view(), name='wt-logentrydelete'),
+    path('edit_entry/<int:entry_id>', EntryEditView.as_view(), name='wt-logentryedit'),
     path('settings', SettingsView.as_view(), name='wt-settings'),
     path('resetpassword/<str:token>', PasswordResetView.as_view(), name='wt-passwordresetfinish'),
     path('resetpassword', PasswordResetView.as_view(), name='wt-passwordresetstart'),

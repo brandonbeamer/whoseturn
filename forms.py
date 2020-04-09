@@ -59,14 +59,14 @@ class TaskInviteForm(Form):
 
 
 class LogEntryForm(ModelForm):
-    def __init__(self, user, postdata=None):
-        super().__init__(postdata)
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         if self.instance:
             self.fields['task'].queryset = user.task_set
 
     class Meta:
         model = LogEntry
-        fields = ['task', 'comment']
+        fields = ['task', 'date', 'comment']
 
 class PasswordResetStartForm(Form):
     username = CharField(max_length=150)

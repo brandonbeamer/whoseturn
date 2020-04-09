@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.contrib.auth import get_user_model
+import datetime as dt
 #from django.core.signals import p
 
 class Task(models.Model):
@@ -27,13 +28,14 @@ class LogEntry(models.Model):
         null=True)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='entries')
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    date = models.DateField(default=dt.date.today)
     comment = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return f"{self.user} did '{self.task}' at {self.timestamp}"
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['-date', '-timestamp']
 
 class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

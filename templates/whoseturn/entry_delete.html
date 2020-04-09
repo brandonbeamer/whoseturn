@@ -1,0 +1,26 @@
+{% extends 'whoseturn/base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'whoseturn/css/generic.css' %}">
+{% endblock %}
+
+{% block title %}Whose Turn Is It : Confirm Removing Entry{% endblock %}
+
+{% block main %}
+<div class="title">Whose Turn Is It?</div>
+<div class="subtitle">Confirm Remove Entry</div>
+
+<p class="centered">Are you sure you want to remove your <strong>{{entry.task}}</strong> entry from <strong>{{entry.date}}</strong>?</p>
+
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="confirm" value="confirm">
+  <div class="form-fields centered" style="margin-top: 2em;">
+    <input type="submit" name="submit" value="Yes">
+    <input type="button" name="cancel" value="No" class="cancelbutton"
+      onclick="window.location.href='{% url 'wt-logentrylist' task_id=entry.task.id %}'">
+  </div>
+</form>
+
+{% endblock %}

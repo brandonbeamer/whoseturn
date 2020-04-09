@@ -175,6 +175,19 @@ ul.entry-list li {
   margin: 0;
   padding: 1em;
 }
+ul.entry-list li .whowhen {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+ul.entry-list li .edit {
+  font-size: 1.2em;
+}
+ul.entry-list li .remove {
+  font-size: 1.2em;
+  color: red;
+  margin-left: 0.5em;
+}
 ul.entry-list li .comment {
   color: darkgray;
 }
