@@ -58,19 +58,27 @@ class Membership(models.Model):
     @staticmethod
     @receiver(post_save, sender=LogEntry)
     def on_logentry_save(**kwargs):
-        if not kwargs.get('created'):
-            return
-        task = kwargs.get('instance').task
-        user = kwargs.get('instance').user
-        memb = Membership.objects.get(user=user, task=task)
-        if memb.turn_count == -1:
-            # Actually count
-            count = LogEntry.objects.filter(user=user, task=task).count()
-            memb.turn_count = count
-        else:
-            memb.turn_count += 1
+        if kwargs.get('created'):
+            # initialize or increment the turn_count
+            task = kwargs.get('instance').task
+            user = kwargs.get('instance').user
+            memb = Membership.objects.get(user=user, task=task)
+            if memb.turn_count == -1:
+                # Actually count
+                count = LogEntry.objects.filter(user=user, task=task).count()
+                memb.turn_count = count
+            else:
+                memb.turn_count += 1
 
-        memb.save()
+            memb.save()
+        else:
+            # recalculate all turn counts, since entry may have belonged to
+            # other task prior
+            user = kwargs.get('instance').user
+            memb = Membership.objects.filter(user=user)
+            for _ in memb:
+                _.turn_count = -1
+                _.save()
 
     @staticmethod
     @receiver(post_delete, sender=LogEntry)
