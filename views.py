@@ -429,21 +429,28 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
         return super().dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
-        form = LogEntryForm(self.request.user)
+        task_id = kwargs.get('task_id', None)
+        task = None
+        if task_id is not None:
+            task = get_object_or_404(Task, id=task_id, members__username=self.request.user.username)
+
+        form = LogEntryForm(init_user=self.request.user, initial={'task': task})
+
         context = {'form': form}
         return context
 
     def post(self, request, **kwargs):
-        form = LogEntryForm(request.user, request.POST)
+        form = LogEntryForm(request.POST, init_user=request.user)
         if form.is_valid():
             self.form_valid(form)
             return render(request, self.success_template,
-                {'redirect_url': reverse('wt-dashboard'),
+                {'redirect_url': reverse('wt-logentrylist', kwargs={'task_id': form.cleaned_data['task'].id}),
                  'message': "Your contribution has been noted!"})
         else:
             return render(request, self.template_name, {'form': form})
 
     def form_valid(self, form):
+        #task = get_object_or_404(Task, id=form.cleaned_data['task'].id, members__username=self.request.user.username)
         entry = form.save(commit=False)
         entry.user = self.request.user
         entry.save() # membership automatically updated
