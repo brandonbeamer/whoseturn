@@ -21,6 +21,13 @@ body {
   color: black;
 }
 
+footer {
+  margin-top: 1em;
+  text-align: center;
+  color: gray;
+  font-size: 0.7em;
+}
+
 a {
   color: blue;
   font-weight: bold;
@@ -183,16 +190,33 @@ ul.entry-list li .whowhen {
 ul.entry-list li .edit {
   font-size: 1.2em;
 }
+ul.entry-list li .edit:hover {
+  text-shadow: 0 0 0.2em lightblue;
+}
 ul.entry-list li .remove {
   font-size: 1.2em;
   color: red;
   margin-left: 0.5em;
+}
+ul.entry-list li .remove:hover {
+  text-shadow: 0 0 0.2em pink;
 }
 ul.entry-list li .comment {
   color: darkgray;
 }
 ul.entry-list li:nth-child(2n) {
   background: #fbfbfb;
+}
+
+.add {
+  text-align: center;
+  font-size: 2em;
+}
+.add a {
+  color: green;
+}
+.add a:hover {
+  text-shadow: 0 0 0.2em lightgreen;
 }
 
 /*# sourceMappingURL=entry_list.css.map */

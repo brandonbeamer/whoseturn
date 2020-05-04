@@ -59,10 +59,10 @@ class TaskInviteForm(Form):
 
 
 class LogEntryForm(ModelForm):
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, *args, init_user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance:
-            self.fields['task'].queryset = user.task_set
+            self.fields['task'].queryset = init_user.task_set
 
     class Meta:
         model = LogEntry

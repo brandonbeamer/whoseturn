@@ -28,10 +28,16 @@ ul.entry-list {
     .edit {
       font-size: 1.2em;
     }
+    .edit:hover {
+      @include base.blue-glow;
+    }
     .remove {
       font-size: 1.2em;      
       color: red;
       margin-left: 0.5em;
+    }
+    .remove:hover {
+      @include base.red-glow;
     }
     .comment {
       color: darkgray;
@@ -46,5 +52,24 @@ ul.entry-list {
 // .history-line {
 //   display: flex;
 //   justify-content: space-between;
-//   align-items: flex-end;
+//   align-items: center;
+//   padding-right: 1em;
+//   p:first-child {
+//     margin-top: 0;
+//   }
+//   .add {
+//     color: green;
+//     font-size: 2.0em;
+//   }
 // }
+
+.add {
+  a {
+    color: green;
+  }  
+  a:hover {
+    @include base.green-glow;
+  }
+  text-align: center;
+  font-size: 2.0em;
+}

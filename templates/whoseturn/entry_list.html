@@ -25,10 +25,16 @@
   {% endfor %}
 </ul>
 
-<!-- <div class="history-line"> -->
-<p style="margin-top: 2em;">Its history is as follows: </p>
+<!-- <div class="history-line">
+  <p>Its history is as follows: </p>
+  <p class="material-icons add">add_circle_outline</p>
+</div> -->
 
-<!-- </div> -->
+<p>It's history is as follows:</p>
+
+<div class="add">
+  <p class="material-icons"><a href="{% url 'wt-newentry' task_id=task.id %}">add_circle_outline</a></p>
+</div>
 
 
 <ul class="entry-list">

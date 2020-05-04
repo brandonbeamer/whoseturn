@@ -20,6 +20,7 @@ urlpatterns = [
     path('managetasks', TaskListView.as_view(), name='wt-tasklist'),
     path('invite/<uuid:task_id>', TaskInviteView.as_view(), name='wt-taskinvite'),
     path('removetask/<uuid:task_id>', TaskDeleteView.as_view(), name='wt-taskdelete'),
+    path('newentry/<uuid:task_id>', NewEntryView.as_view(), name='wt-newentry'),
     path('newentry', NewEntryView.as_view(), name='wt-newentry'),
     path('log/<uuid:task_id>', EntryListView.as_view(), name='wt-logentrylist'),
     path('remove_entry/<int:entry_id>', EntryDeleteView.as_view(), name='wt-logentrydelete'),
