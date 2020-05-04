@@ -13,6 +13,7 @@
 <div class="subtitle">Register</div>
 
 <p>Please fill in the following fields to sign-up for Whose Turn Is It.</p>
+<p style="font-size: 0.8em; color: gray;">Already have account? <a href="{% url 'wt-login' %}">Login!</a></p>
 
 <form method="post">
   {% csrf_token %}
@@ -58,6 +59,11 @@
   {{user_form.password1.errors}}
   {{user_form.password2.errors}}
 
+  <div class="captcha-container">
+    {% render_field captcha_form.captcha %}
+    {{captcha_form.captcha.errors}}
+  </div>
+  
   <p class="form-submit">
     <input type="submit" name="submit" value="Register">
   </p>

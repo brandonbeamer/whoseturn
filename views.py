@@ -21,7 +21,7 @@ import pytz
 # from django.contrib.auth.forms import AuthenticationForm
 # from django.contrib.auth.forms import UserCreationForm
 from .forms import (
-    FullUserCreationForm, UserSettingsForm, UserDetailsForm,
+    CaptchaForm, FullUserCreationForm, UserSettingsForm, UserDetailsForm,
     CustomAuthenticationForm, TaskForm, TaskInviteForm, LogEntryForm,
     PasswordResetStartForm)
 from .models import (
@@ -79,9 +79,9 @@ def send_invites(user, task, recipients):
             {**base_context, 'invite_url': invite_url, 'use_html': False})
 
         message = EmailMultiAlternatives(
-            subject="Invitation to a shared task on WhoseTurnIsIt",
+            subject="Invitation to a shared task on Whose Turn Is It",
             body=txt_message,
-            from_email=f'"WhoseTurnIsIt" <{settings.WHOSETURNISIT_EMAIL}>',
+            from_email=f'"Whose Turn Is It" <{settings.WHOSETURNISIT_EMAIL}>',
             to=[recipient],
         )
         message.attach_alternative(html_message, 'text/html')
@@ -167,13 +167,15 @@ class RegisterView(TemplateView):
         context.update({
             'user_form': FullUserCreationForm(),
             'settings_form': UserSettingsForm(),
+            'captcha_form': CaptchaForm(),
         })
         return context
 
     def post(self, request, **kwargs):
         user_form = FullUserCreationForm(request.POST)
         settings_form = UserSettingsForm(request.POST)
-        if user_form.is_valid() and settings_form.is_valid():
+        captcha_form = CaptchaForm(request.POST)
+        if user_form.is_valid() and settings_form.is_valid() and captcha_form.is_valid():
             self.forms_valid(user_form, settings_form)
             return render(request, self.success_template,
                 {'redirect_url': reverse('wt-dashboard'),
@@ -184,6 +186,7 @@ class RegisterView(TemplateView):
             context.update({
                 'user_form': user_form,
                 'settings_form': settings_form,
+                'captcha_form': captcha_form,
             })
             return render(request, self.template_name, context)
 
@@ -314,12 +317,13 @@ class NewTaskView(UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = {
-            'form': TaskForm()
+            'form': TaskForm(),
         }
         return context;
 
     def post(self, request, **kwargs):
         form = TaskForm(request.POST)
+        captcha_form = CaptchaForm(request.POST)
         if form.is_valid():
             self.form_valid(form) # write to self.new_object
             return render(self.request, self.success_template,
@@ -327,7 +331,7 @@ class NewTaskView(UserPassesTestMixin, TemplateView):
                  'message': 'New task group created!'})
         else:
             context = {
-                'form': form
+                'form': form,
             }
             return render(self.request, self.template_name, context)
 

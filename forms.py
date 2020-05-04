@@ -4,9 +4,13 @@ from django.forms import ModelForm, ValidationError, Form, PasswordInput
 from django.forms.fields import CharField
 from django.core.validators import validate_email
 from django.contrib.auth.password_validation import validate_password
+from captcha.fields import ReCaptchaField
 from .constants import APP_GROUP_NAME
 from .models import UserSettings, Task, LogEntry
 
+
+class CaptchaForm(Form):
+    captcha = ReCaptchaField()
 
 class EmailListField(CharField):
     # No need to override consructor
