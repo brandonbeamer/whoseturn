@@ -3,7 +3,7 @@ Copyright © 2020 Brandon Beamer
 Overview
 ========
 
-Whose Turn Is It is a django-based web app that helps groups who share responsibilities to keep track of, well, whose turn it is. This project was developed out of a real need for my partner and I to keep track of whose turn it was to buy dinner—something we, amazing, had real difficulty keeping track of.
+Whose Turn Is It is a django-based web app that helps groups who share responsibilities to keep track of, well, whose turn it is. This project was developed out of a real need for my partner and I to keep track of whose turn it was to buy dinner—something we, amazingly, had real difficulty keeping track of.
 
 Implementation
 ==============
