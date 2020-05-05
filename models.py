@@ -40,58 +40,53 @@ class LogEntry(models.Model):
 class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    # gifted_turns = models.IntegerField(default=0)
+    gifted_turns = models.IntegerField(default=0)
     # keep track of turn counts to reduce db accesses
     # setting this to -1 will trigger an actual count via the LogEntries
-    turn_count = models.IntegerField(default=-1)
+    # turn_count = models.IntegerField(default=-1)
 
     def get_turn_count(self):
-        if self.turn_count == -1:
-            # Update
-            count = LogEntry.objects.filter(user=self.user, task=self.task).count()
-            self.turn_count = count
-            self.save()
+        real_count = LogEntry.objects.filter(user=self.user, task=self.task).count()
+        return real_count + self.gifted_turns
 
-        return self.turn_count
+    # # automatically update turn count
+    # @staticmethod
+    # @receiver(post_save, sender=LogEntry)
+    # def on_logentry_save(**kwargs):
+    #     if kwargs.get('created'):
+    #         # initialize or increment the turn_count
+    #         task = kwargs.get('instance').task
+    #         user = kwargs.get('instance').user
+    #         memb = Membership.objects.get(user=user, task=task)
+    #         if memb.turn_count == -1:
+    #             # Actually count
+    #             count = LogEntry.objects.filter(user=user, task=task).count()
+    #             memb.turn_count = count
+    #         else:
+    #             memb.turn_count += 1
 
-    # automatically update turn count
-    @staticmethod
-    @receiver(post_save, sender=LogEntry)
-    def on_logentry_save(**kwargs):
-        if kwargs.get('created'):
-            # initialize or increment the turn_count
-            task = kwargs.get('instance').task
-            user = kwargs.get('instance').user
-            memb = Membership.objects.get(user=user, task=task)
-            if memb.turn_count == -1:
-                # Actually count
-                count = LogEntry.objects.filter(user=user, task=task).count()
-                memb.turn_count = count
-            else:
-                memb.turn_count += 1
+    #         memb.save()
+    #     else:
+    #         # recalculate all turn counts, since entry may have belonged to
+    #         # other task prior
+    #         user = kwargs.get('instance').user
+    #         memb = Membership.objects.filter(user=user)
+    #         for _ in memb:
+    #             _.turn_count = -1
+    #             _.save()
 
-            memb.save()
-        else:
-            # recalculate all turn counts, since entry may have belonged to
-            # other task prior
-            user = kwargs.get('instance').user
-            memb = Membership.objects.filter(user=user)
-            for _ in memb:
-                _.turn_count = -1
-                _.save()
-
-    @staticmethod
-    @receiver(post_delete, sender=LogEntry)
-    def on_logentry_delete(**kwargs):
-        inst = kwargs.get('instance')
-        memb = Membership.objects.get(user=inst.user, task=inst.task)
-        if memb.turn_count == -1:
-            # Actually count
-            count = LogEntry.objects.filter(user=inst.user, task=inst.task).count()
-            memb.turn_count = count
-        else:
-            memb.turn_count -= 1
-        memb.save()
+    # @staticmethod
+    # @receiver(post_delete, sender=LogEntry)
+    # def on_logentry_delete(**kwargs):
+    #     inst = kwargs.get('instance')
+    #     memb = Membership.objects.get(user=inst.user, task=inst.task)
+    #     if memb.turn_count == -1:
+    #         # Actually count
+    #         count = LogEntry.objects.filter(user=inst.user, task=inst.task).count()
+    #         memb.turn_count = count
+    #     else:
+    #         memb.turn_count -= 1
+    #     memb.save()
 
 
 class UserSettings(models.Model):
