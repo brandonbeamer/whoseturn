@@ -20,21 +20,27 @@
 
   {{user_form.non_field_errors}}
 
-  <p class="form-header">Your desired username:</p>
+  <div class="form-header">Your desired username:
+    <ul>
+      <li>For login purposes only. Nobody else will see your username.</li>
+    </ul>
+  </div>
   <p class="form-fields">
     {% render_field user_form.username placeholder="Username" %}
   </p>
 
   {{user_form.username.errors}}
 
-  <p class="form-header">Your real name:</p>
+  <div class="form-header">Your nickname:
+    <ul>
+      <li>This is the name others will see and interact with.</li>
+    </ul>
+  </div>
   <p class="form-fields">
-    {% render_field user_form.first_name placeholder="First Name" %}
-    {% render_field user_form.last_name placeholder="Last Name" %}
+    {% render_field user_form.first_name placeholder="Nickname" %}
   </p>
 
   {{user_form.first_name.errors}}
-  {{user_form.last_name.errors}}
 
   <p class="form-header">Your email address:</p>
   <p class="form-fields">

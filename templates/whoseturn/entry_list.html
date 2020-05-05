@@ -20,7 +20,7 @@
 
 <ul class="member-list">
   {% for item in member_list %}
-    <li>{{item.user.get_full_name}} (taken {{item.turn_count}}
+    <li>{{item.user.first_name}} (taken {{item.turn_count}}
       {% if item.turn_count == 1 %}turn{% else %}turns{% endif %})</li>
   {% endfor %}
 </ul>
@@ -42,7 +42,7 @@
     <li>
       <div class="whowhen">
         <div>
-           <strong>{{entry.user.get_full_name}}</strong> on {{entry.date}}
+           <strong>{{entry.user.first_name}}</strong> on {{entry.date}}
         </div>
         <div style="white-space: nowrap;">{% if user == entry.user %}
           <a class="material-icons edit" href="{% url 'wt-logentryedit' entry_id=entry.id %}">edit</a>

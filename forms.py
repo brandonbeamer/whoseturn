@@ -34,13 +34,13 @@ class FullUserCreationForm(UserCreationForm):
     # TODO: Make name mandatory
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'username']
+        fields = ['first_name', 'email', 'username']
 
 class UserDetailsForm(ModelForm):
     # TODO: Make name mandatory
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
+        fields = ['first_name', 'email']
 
 class CustomAuthenticationForm(AuthenticationForm):
     def confirm_login_allowed(self, user):
