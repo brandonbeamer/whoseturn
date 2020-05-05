@@ -28,9 +28,9 @@
 
   <p class="form-header centered">When did you do it?</p>
     <p class="form-fields centered">
-    {% render_field form.date style="text-align: center" %}
+    {% render_field form.date type="date" style="text-align: center" %}
   </p>
-  <p class="centered" style="color: gray; font-size: 0.8em;">(YYYY-MM-DD format)</p>
+  
   {{form.date.errors}}
 
   <p class="form-header centered">Leave a comment?</p>

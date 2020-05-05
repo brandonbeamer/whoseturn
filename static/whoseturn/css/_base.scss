@@ -60,7 +60,7 @@ a:hover {
   @include blue-glow;
 }
 
-[type=text], [type=password], [type=email], select {
+[type=text], [type=password], [type=email], [type=date], select {
   @include reset-font;
   background-color: white;
   padding: 0.4em;
