@@ -107,7 +107,7 @@ def send_password_reset(user, email):
     message = EmailMultiAlternatives(
         subject="Whose Turn Is It : Password Reset",
         body=txt_message,
-        from_email=f'WhoseTurnIsIt <{settings.WHOSETURNISIT_EMAIL}>',
+        from_email=f'Whose Turn Is It <{settings.WHOSETURNISIT_EMAIL}>',
         to=[email]
     )
     message.attach_alternative(html_message, 'text/html')
@@ -318,6 +318,7 @@ class NewTaskView(UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = {
             'form': TaskForm(),
+            'invite_lifespan': INVITE_TOKEN_LIFESPAN,
         }
         return context;
 
@@ -332,6 +333,7 @@ class NewTaskView(UserPassesTestMixin, TemplateView):
         else:
             context = {
                 'form': form,
+                'invite_lifespan': INVITE_TOKEN_LIFESPAN,
             }
             return render(self.request, self.template_name, context)
 
@@ -366,6 +368,7 @@ class TaskInviteView(UserPassesTestMixin, TemplateView):
 
         context = {
             'form': TaskInviteForm(),
+            'invite_lifespan': INVITE_TOKEN_LIFESPAN,
         }
         return context
 
@@ -382,7 +385,7 @@ class TaskInviteView(UserPassesTestMixin, TemplateView):
             }
             return render(request, self.success_template, context)
         else:
-            return render(request, self.template_name, {'form': form})
+            return render(request, self.template_name, {'form': form, 'invite_lifespan': INVITE_TOKEN_LIFESPAN})
 
 class TaskDeleteView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test
@@ -415,6 +418,7 @@ class TaskDeleteView(UserPassesTestMixin, TemplateView):
 
 class AcceptInviteView(View):
     def get(self, request, **kwargs):
+        expire_invite_tokens()
         invite = get_object_or_404(Invite, token=kwargs['token'])
 
         # invite is valid
@@ -620,9 +624,11 @@ class PasswordResetView(View):
         if token is None:
             # Start Process
             form = PasswordResetStartForm()
+            captcha_form = CaptchaForm()
             return render(request, self.start_template,
-                {'form': form})
+                {'form': form, 'captcha_form': captcha_form, 'reset_lifespan': PASSWORD_RESET_TOKEN_LIFESPAN})
         else:
+            expire_reset_tokens()
             # Test token validity and display setpasswordform
             try:
                 reset = PasswordReset.objects.get(token=token)
@@ -642,17 +648,31 @@ class PasswordResetView(View):
         if token is None:
             # Send reset email
             form = PasswordResetStartForm(request.POST)
-            if form.is_valid():
-                user = User.objects.get(username=form.cleaned_data.get('username'))
-                email = user.email
-                send_password_reset(user, email)
-                return render(request, self.success_template,
-                    {
-                        'redirect_url': reverse('wt-login'),
-                        'message': 'Password reset email sent.'
-                    })
+            captcha_form = CaptchaForm(request.POST)
+            if form.is_valid() and captcha_form.is_valid():
+                try:
+                    user = User.objects.get(username=form.cleaned_data.get('username'))
+                except ObjectDoesNotExist:
+                    user = None
+
+                if user is None:
+                    return render(request, self.error_template,
+                        {'message': 'Username not found, please verify you typed it correctly.'})
+                else:
+                    email = user.email
+                    send_password_reset(user, email)
+                    return render(request, self.success_template,
+                        {
+                            'redirect_url': reverse('wt-login'),
+                            'message': 'Password reset email sent.'
+                        })
             else:
-                return render(request, self.start_template, {'form': form})
+                return render(request, self.start_template, 
+                    {
+                        'form': form ,
+                        'captcha_form': captcha_form, 
+                        'reset_lifespan': PASSWORD_RESET_TOKEN_LIFESPAN
+                    })
         else:
             # reset password
             reset = get_object_or_404(PasswordReset, token=token)
