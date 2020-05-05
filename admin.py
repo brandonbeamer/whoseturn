@@ -5,6 +5,12 @@ from .models import UserSettings, LogEntry, Task, Invite, PasswordReset, Members
 admin.site.register(UserSettings)
 admin.site.register(LogEntry)
 admin.site.register(Task)
-admin.site.register(Invite)
-admin.site.register(PasswordReset)
 admin.site.register(Membership)
+
+@admin.register(Invite)
+class InviteAdmin(admin.ModelAdmin):
+    readonly_fields = ('timestamp',)
+
+@admin.register(PasswordReset)
+class PasswordResetAdmin(admin.ModelAdmin):
+    readonly_fields = ('timestamp',)

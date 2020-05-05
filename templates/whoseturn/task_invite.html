@@ -21,8 +21,17 @@
 
   {{form.non_field_errors}}
 
-  <p class="form-header">Invite others to this task by entering their email addresses, separated by commas,
-    below. New members start on equal footing with the current group leader.</p>
+  <div class="form-header">Invite others to this task by entering their email addresses, separated by commas,
+    below. 
+    <ul>
+      <li>
+        New members start on equal footing with the current group leader.
+      </li>
+      <li>
+        Invites are valid for {{invite_lifespan}} day{% if invite_lifespan > 1 %}s{% endif %}.
+      </li>
+    </ul>  
+  </div>
 
   <p class="form-fields">
     {% render_field form.invite_emails placeholder='lizzy@google.com, grandpa@hotmail.com, ...' style='width:100%' %}
