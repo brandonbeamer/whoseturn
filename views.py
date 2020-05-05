@@ -247,7 +247,7 @@ class DashboardView(View):
                     max_turns = max(turns.values())
                     task.members.add(request.user)
                     membership = Membership.objects.get(task=task, user=request.user)
-                    membership.turn_count = max_turns
+                    membership.gifted_turns = max_turns
                     membership.save()
                     invite.delete()
                 else:
