@@ -464,11 +464,11 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
     success_template = 'whoseturn/generic_success.html'
     error_template = 'whoseturn/generic_error.html'
 
-    def dispatch(self, request, **kwargs):
-        tzname = request.user.settings.timezone
-        if tzname:
-            timezone.activate(pytz.timezone(tzname))
-        return super().dispatch(request, **kwargs)
+    # def dispatch(self, request, **kwargs):
+    #     tzname = request.user.settings.timezone
+    #     if tzname:
+    #         timezone.activate(pytz.timezone(tzname))
+    #     return super().dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         task_id = kwargs.get('task_id', None)
@@ -476,7 +476,9 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
         if task_id is not None:
             task = get_object_or_404(Task, id=task_id, members__username=self.request.user.username)
 
-        form = LogEntryForm(init_user=self.request.user, initial={'task': task})
+        tzname = self.request.user.settings.timezone
+        today = timezone.now().astimezone(pytz.timezone(self.request.user.settings.timezone))
+        form = LogEntryForm(init_user=self.request.user, initial={'task': task, 'date': today})
 
         context = {'form': form}
         return context
@@ -512,11 +514,11 @@ class EntryEditView(UserPassesTestMixin, TemplateView):
     template_name = 'whoseturn/entry_edit.html'
     success_template = 'whoseturn/generic_success.html'
 
-    def dispatch(self, request, **kwargs):
-        tzname = request.user.settings.timezone
-        if tzname:
-            timezone.activate(pytz.timezone(tzname))
-        return super().dispatch(request, **kwargs)
+    # def dispatch(self, request, **kwargs):
+    #     tzname = request.user.settings.timezone
+    #     if tzname:
+    #         timezone.activate(pytz.timezone(tzname))
+    #     return super().dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         entry = get_object_or_404(LogEntry,
@@ -553,11 +555,11 @@ class EntryListView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test
     template_name = 'whoseturn/entry_list.html'
 
-    def dispatch(self, request, **kwargs):
-        tzname = request.user.settings.timezone
-        if tzname:
-            timezone.activate(pytz.timezone(tzname))
-        return super().dispatch(request, **kwargs)
+    # def dispatch(self, request, **kwargs):
+    #     tzname = request.user.settings.timezone
+    #     if tzname:
+    #         timezone.activate(pytz.timezone(tzname))
+    #     return super().dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         task = get_object_or_404(Task, id=kwargs['task_id'],
