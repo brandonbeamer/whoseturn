@@ -522,7 +522,7 @@ class EntryEditView(UserPassesTestMixin, TemplateView):
         entry = get_object_or_404(LogEntry,
                                   id=kwargs['entry_id'],
                                   user=self.request.user)
-        form = LogEntryForm(self.request.user, instance=entry)
+        form = LogEntryForm(init_user=self.request.user, instance=entry)
         context = {
             'entry': entry,
             'form': form
@@ -534,7 +534,7 @@ class EntryEditView(UserPassesTestMixin, TemplateView):
                                   id=kwargs['entry_id'],
                                   user=self.request.user)
 
-        form = LogEntryForm(request.user, request.POST, instance=entry)
+        form = LogEntryForm(request.POST, init_user=request.user, instance=entry)
         if form.is_valid():
             self.form_valid(form)
             return render(request, self.success_template,
