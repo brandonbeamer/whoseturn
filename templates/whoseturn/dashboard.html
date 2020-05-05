@@ -29,7 +29,7 @@
         &hellip; to <a class="turn-task" href="{% url 'wt-logentrylist' task_id=turn.task.id %}">{{turn.task}}</a>:
       </div>
       <div class="turn-name centered">
-        {{turn.user.get_full_name}}
+        {{turn.user.first_name}}
       </div>
     </li>
   {% endfor %}
