@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from datetime import datetime, timedelta
 from secrets import token_urlsafe
+from ratelimit.decorators import ratelimit
 
 import pytz
 
@@ -131,6 +132,7 @@ def get_member_turns(task):
 
 class LoginView(View):
     template_name = 'whoseturn/login.html'
+    error_template = 'whoseturn/generic_error.html'
     form_class = CustomAuthenticationForm
     success_url = reverse_lazy('wt-dashboard')
     test_func = logged_in_test
@@ -142,7 +144,18 @@ class LoginView(View):
             form = CustomAuthenticationForm()
             return render(request, self.template_name, {'form': form})
 
+    @ratelimit(key='user_or_ip', rate='30/h', method='POST')
+    @ratelimit(key='user_or_ip', rate='5/m', method='POST')
     def post(self, request, **kwargs):
+        if getattr(request, 'limited', False):
+            return render(request, self.error_template, {
+                'message': """
+                    We've noticed a large number of attempts to login as the same username.
+                    Please wait a few minutes to try again. If you can't remember your password,
+                    use the password reset feature.
+                """
+            })
+
         form = CustomAuthenticationForm(request, request.POST)
         if form.is_valid():
             self.form_valid(form)
@@ -314,6 +327,7 @@ class NewTaskView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test
     template_name = 'whoseturn/task_new.html'
     success_template = 'whoseturn/generic_success.html'
+    error_template = 'whoseturn/generic_error.html'
 
     def get_context_data(self, **kwargs):
         context = {
@@ -322,7 +336,16 @@ class NewTaskView(UserPassesTestMixin, TemplateView):
         }
         return context;
 
+    @ratelimit(key='user_or_ip', rate='30/h', method='POST')
+    @ratelimit(key='user_or_ip', rate='5/m', method='POST')
     def post(self, request, **kwargs):
+        if getattr(request, 'limited', False):
+            return render(request, self.error_template, {
+                'message': """
+                    You're adding a lot of new group tasks at once. Please wait a few minutes before adding more.
+                """
+            })
+
         form = TaskForm(request.POST)
         captcha_form = CaptchaForm(request.POST)
         if form.is_valid():
@@ -361,6 +384,7 @@ class TaskInviteView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test
     template_name = 'whoseturn/task_invite.html'
     success_template = 'whoseturn/generic_success.html'
+    error_template = 'whoseturn/generic_error.html'
 
     def get_context_data(self, **kwargs):
         task = get_object_or_404(Task, id=kwargs['task_id'],
@@ -372,7 +396,16 @@ class TaskInviteView(UserPassesTestMixin, TemplateView):
         }
         return context
 
+    @ratelimit(key='user_or_ip', rate='30/h', method='POST')
+    @ratelimit(key='user_or_ip', rate='5/m', method='POST')
     def post(self, request, **kwargs):
+        if getattr(request, 'limited', False):
+            return render(request, self.error_template, {
+                'message': """
+                    You're sending out an awful lot of invites at once. Please wait a few minutes before sending more.
+                """
+            })
+
         task = get_object_or_404(Task, id=kwargs['task_id'],
                                        members__username=request.user.username)
         form = TaskInviteForm(request.POST)
@@ -429,6 +462,7 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
     test_func = logged_in_test
     template_name = 'whoseturn/entry_new.html'
     success_template = 'whoseturn/generic_success.html'
+    error_template = 'whoseturn/generic_error.html'
 
     def dispatch(self, request, **kwargs):
         tzname = request.user.settings.timezone
@@ -447,7 +481,16 @@ class NewEntryView(UserPassesTestMixin, TemplateView):
         context = {'form': form}
         return context
 
+    @ratelimit(key='user_or_ip', rate='60/h', method='POST')
+    @ratelimit(key='user_or_ip', rate='6/m', method='POST')
     def post(self, request, **kwargs):
+        if getattr(request, 'limited', False):
+            return render(request, self.error_template, {
+                'message': """
+                    You're adding an awful log of entries at once. Please wait a few minutes before adding more.
+                """
+            })
+
         form = LogEntryForm(request.POST, init_user=request.user)
         if form.is_valid():
             self.form_valid(form)
